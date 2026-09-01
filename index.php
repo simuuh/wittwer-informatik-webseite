@@ -907,6 +907,7 @@ if (form) {
   });
 }
 
+<?php if (!empty($hckey)): ?>
 // hCaptcha erst laden wenn Kontaktformular sichtbar
 const captchaTarget = document.querySelector('.h-captcha');
 if (captchaTarget) {
@@ -924,6 +925,7 @@ if (captchaTarget) {
   }, { rootMargin: '200px' });
   observer.observe(captchaTarget);
 }
+<?php endif; ?>
 </script>
 
 </body>

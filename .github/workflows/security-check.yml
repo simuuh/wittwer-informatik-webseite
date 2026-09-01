@@ -97,8 +97,9 @@ jobs:
       - name: "A03 | Path Traversal: page-Parameter mit config"
         run: |
           BODY=$(curl -s "http://localhost:8080/?page=config")
-          # config.php darf nicht gerendert werden — landet auf Home
-          echo "$BODY" | grep -qi "secret_key\|hcaptcha" && exit 1 || echo "OK"
+          # config.php darf nicht gerendert werden — landet auf Home.
+          # Marker: Schluessel die es nur in config.php gibt, nie im Seiten-Output.
+          echo "$BODY" | grep -qi "secret_key\|empfaenger" && exit 1 || echo "OK"
 
       # -------------------------------------------------------
       # A03 INJECTION — XSS (Reflected)
