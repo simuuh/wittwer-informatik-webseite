@@ -13,19 +13,8 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()');
 header('X-XSS-Protection: 0');
-header(
-    "Content-Security-Policy: "
-    . "default-src 'self'; "
-    . "script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; "
-    . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-    . "font-src 'self' https://fonts.gstatic.com; "
-    . "frame-src https://newassets.hcaptcha.com; "
-    . "connect-src 'self' https://api.hcaptcha.com; "
-    . "img-src 'self' data:; "
-    . "object-src 'none'; "
-    . "base-uri 'self'; "
-    . "form-action 'self'"
-);
+// contact.php gibt nur JSON zurück, rendert nie HTML. Engste CSP genügt.
+header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none';");
 
 header('Content-Type: application/json');
 
@@ -37,6 +26,33 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $config = require __DIR__ . '/config.php';
+
+// Rate Limiting: max. 3 Anfragen pro IP in 10 Minuten
+$ip       = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$ip_hash  = hash('sha256', $ip); // IP nicht im Klartext speichern
+$rl_file  = sys_get_temp_dir() . '/wi_rl_' . $ip_hash;
+$rl_limit = 3;
+$rl_window = 600; // 10 Minuten in Sekunden
+
+$rl_count = 0;
+$rl_reset = time() + $rl_window;
+
+if (file_exists($rl_file)) {
+    $rl_data = json_decode(file_get_contents($rl_file), true);
+    if ($rl_data && $rl_data['reset'] > time()) {
+        $rl_count = $rl_data['count'];
+        $rl_reset = $rl_data['reset'];
+    }
+}
+
+if ($rl_count >= $rl_limit) {
+    http_response_code(429);
+    echo json_encode(['ok' => false, 'fehler' => ['Zu viele Anfragen. Bitte warte 10 Minuten und versuche es erneut.']]);
+    exit;
+}
+
+// Zähler erhöhen (wird nach erfolgreichem Send gespeichert)
+$rl_count++;
 
 // Eingaben bereinigen
 $name     = trim(strip_tags($_POST['name'] ?? ''));
@@ -80,25 +96,56 @@ if (!empty($hc['secret_key'])) {
 }
 
 // Mail senden
-$k   = $config['kontakt'];
-$f   = $config['firma'];
+$k = $config['kontakt'];
+$f = $config['firma'];
 
-$betreff = '=?UTF-8?B?' . base64_encode('Kontaktanfrage von ' . $name) . '?=';
+if (!empty($k['ahasend_key'])) {
+    // Mail senden via Ahasend SMTP API
+    $payload = json_encode([
+        'from' => [
+            'name'    => $f['name'],
+            'address' => $k['absender'],
+        ],
+        'to' => [[
+            'address' => $k['empfaenger'],
+        ]],
+        'reply_to' => [[
+            'address' => $mail,
+        ]],
+        'subject' => 'Kontaktanfrage von ' . $name,
+        'text'    => "Neue Kontaktanfrage über wittwer-informatik.ch\n\nName:   {$name}\nE-Mail: {$mail}\n---\n\n{$nachricht}",
+    ]);
 
-$text = "Neue Kontaktanfrage über wittwer-informatik.ch\n\n";
-$text .= "Name:    {$name}\n";
-$text .= "E-Mail:  {$mail}\n";
-$text .= "---\n\n";
-$text .= $nachricht . "\n";
+    $ch = curl_init($k['ahasend_url']);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_HTTPHEADER     => [
+            'Content-Type: application/json',
+            'X-Api-Key: ' . $k['ahasend_key'],
+        ],
+        CURLOPT_TIMEOUT        => 10,
+    ]);
 
-$headers  = "From: {$f['name']} <{$k['absender']}>\r\n";
-$headers .= "Reply-To: {$name} <{$mail}>\r\n";
-$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-$headers .= "X-Mailer: PHP/" . phpversion();
+    $api_response = curl_exec($ch);
+    $http_code    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-$gesendet = mail($k['empfaenger'], $betreff, $text, $headers);
+    $gesendet = ($http_code >= 200 && $http_code < 300);
+} else {
+    // Fallback: PHP mail()
+    $headers  = "From: {$f['name']} <{$k['absender']}>\r\n";
+    $headers .= "Reply-To: <{$mail}>\r\n";
+    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+    $betreff  = '=?UTF-8?B?' . base64_encode('Kontaktanfrage von ' . $name) . '?=';
+    $text     = "Neue Kontaktanfrage über wittwer-informatik.ch\n\nName:   {$name}\nE-Mail: {$mail}\n---\n\n{$nachricht}";
+    $gesendet = mail($k['empfaenger'], $betreff, $text, $headers);
+}
 
 if ($gesendet) {
+    // Rate-Limiting-Zähler nur bei erfolgreichem Send speichern
+    file_put_contents($rl_file, json_encode(['count' => $rl_count, 'reset' => $rl_reset]));
     echo json_encode(['ok' => true]);
 } else {
     http_response_code(500);
