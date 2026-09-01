@@ -464,8 +464,8 @@ h2 {
 
 <div class="wrap">
   <div class="hero">
-    <h1>Du hast ein Problem.<br>Ich finde die <em>Lösung.</em></h1>
-    <p class="hero-sub">Zuerst schaue ich was vorhanden ist. Dann wählen wir gemeinsam das Richtige, ob das eine bestehende Lösung ist oder eine Eigenentwicklung. Von Anfang bis Ende.</p>
+    <h1>Du hast ein Problem.<br>Ich finde die passende <em>Lösung.</em></h1>
+    <p class="hero-sub">Zuerst schaue ich mir an, was bereits vorhanden ist. Danach entscheiden wir gemeinsam, ob eine bestehende Lösung sinnvoll ist oder eine individuelle Eigenentwicklung. Ich begleite dich von der Idee bis zur fertigen Umsetzung.</p>
     <a href="#kontakt" class="btn">Schreib mir</a>
   </div>
 </div>
@@ -476,7 +476,7 @@ h2 {
   <div class="wrap">
     <div class="sec-label">Wie ich helfe</div>
     <h2>Erst verstehen, dann lösen</h2>
-    <p class="sec-intro">Ich verkaufe kein bestimmtes Werkzeug. Ich löse dein Problem mit dem, was sinnvoll ist.</p>
+    <p class="sec-intro">Ich verkaufe keine bestimmte Technologie oder Software. Ich schaue zuerst, was du wirklich brauchst und finde die Lösung, die dich am besten weiterbringt.</p>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
@@ -489,7 +489,7 @@ h2 {
         <div class="step-num">2</div>
         <div>
           <h3>Das Richtige wählen</h3>
-          <p>Oft reicht was du schon hast. Manchmal ist eine Open-Source-Lösung die bessere Wahl. Manchmal braucht es eine Eigenentwicklung.</p>
+          <p>Oft reicht, was du schon hast. Manchmal ist eine Open-Source-Lösung die bessere Wahl. Manchmal braucht es eine Eigenentwicklung.</p>
           <div class="tool-tags">
             <span class="tool-tag">Microsoft 365</span>
             <span class="tool-tag">Open Source</span>
@@ -502,7 +502,7 @@ h2 {
         <div class="step-num">3</div>
         <div>
           <h3>Umsetzen und betreiben</h3>
-          <p>Ich setze um, erkläre was ich gemacht habe, und bin danach noch da. Kein "deploy and forget".</p>
+          <p>Ich setze die Lösung um, erkläre dir, was ich gemacht habe, und bin auch danach noch da. Kein "Deploy and forget"</p>
         </div>
       </div>
     </div>
@@ -515,27 +515,27 @@ h2 {
   <div class="wrap">
     <div class="sec-label">Typische Situationen</div>
     <h2>Kommt dir das bekannt vor?</h2>
-    <p class="sec-intro">Keine Theorie. Das sind echte Probleme, die ich bereits gelöst habe.</p>
+    <p class="sec-intro">Keine Theorie. Das sind echte Probleme, die ich bereits gelöst habe. </p>
     <div class="examples">
       <div class="ex">
         <svg class="ex-icon" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 2v4M16 2v4M2 10h20"/></svg>
-        <h3>M365 ist bezahlt, aber ihr nutzt nur Outlook</h3>
-        <p>Teams, SharePoint, Power Automate, Forms. Alles schon drin. Ich richte es ein und zeige euch, wie es den Alltag vereinfacht.</p>
+        <h3>Microsoft 365 ist bezahlt, aber ihr nutzt nur Outlook</h3>
+        <p>Teams, SharePoint, Power Apps, Power Automate, Forms. Alles schon da. Ich richte es passend ein und zeige euch, wie ihr damit euren Alltag einfacher macht.</p>
       </div>
       <div class="ex">
         <svg class="ex-icon" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
         <h3>Mitgliederliste in Excel, Kommunikation über WhatsApp</h3>
-        <p>Kein System, keine Übersicht. Ich helfe euch, das sauber aufzusetzen, ohne dass jemand eine Ausbildung braucht.</p>
+        <p>Keine zentrale Übersicht, keine klaren Abläufe. Ich helfe euch, das sauber aufzusetzen, ohne unnötige Komplexität.</p>
       </div>
       <div class="ex">
         <svg class="ex-icon" viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><path d="M13 16h4M15 14v4"/></svg>
         <h3>Fahrgemeinschaft für den Vereinsausflug organisieren</h3>
-        <p>Mit Mitfahrli geht das ohne App-Download, ohne Anmeldung. Einfach Link teilen, fertig.</p>
+        <p>Mit Mitfahrli geht das ohne App-Download und ohne Anmeldung. Einfach den Link teilen und fertig.</p>
       </div>
       <div class="ex">
         <svg class="ex-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
         <h3>Prozess läuft noch auf Papier oder per Mail hin und her</h3>
-        <p>Ich schaue mir an was es braucht und schlage die einfachste Lösung vor, nicht die teuerste.</p>
+        <p>Ich schaue mir an, was es braucht, und schlage die einfachste Lösung vor, nicht die teuerste.</p>
       </div>
     </div>
   </div>
@@ -547,7 +547,7 @@ h2 {
   <div class="wrap">
     <div class="sec-label">Projekte</div>
     <h2>Was ich gebaut habe</h2>
-    <p class="sec-intro">Eigene Produkte, die ich selbst betreibe.</p>
+    <p class="sec-intro">Ich entwickle nicht nur Lösungen für andere. Ich baue und betreibe auch eigene Softwareprodukte.</p>
     <div class="projects">
       <?php foreach ($projects as $p): ?>
         <?php if (!empty($p['placeholder'])): ?>
@@ -615,9 +615,9 @@ foreach ($projects as $p) {
     <h2><?php echo htmlspecialchars($firma['inhaber']); ?></h2>
     <div class="about-grid">
       <div class="about-text">
-        <p>Ich bin Einzelunternehmer aus dem <?php echo htmlspecialchars($firma['kanton']); ?>. Ich helfe kleinen KMU und Vereinen, ihre IT-Probleme zu lösen, pragmatisch, direkt und ohne unnötigen Aufwand.</p>
-        <p>Ich bin kein grosses Unternehmen. Das ist Absicht. Du redest immer mit mir, nicht mit einem Projektmanager, der das dann weitergibt.</p>
-        <p>Neben der Arbeit trainiere ich Juniorinnen und Junioren im Fussball.</p>
+        <p>Ich bin Einzelunternehmer aus Bern. Ich helfe kleinen KMU und Vereinen, ihre IT-Probleme zu lösen. Pragmatisch, direkt und ohne unnötigen Aufwand.</p>
+        <p>Ich bin kein grosses Unternehmen. Das ist Absicht. Du redest direkt mit mir und nicht mit einem Projektmanager, der dein Anliegen später weitergibt.</p>
+        <p>Neben meiner Arbeit trainiere ich Junioren im Fussball. Auch dort geht es für mich darum, Dinge verständlich zu machen, gemeinsam Lösungen zu finden und am Ende als Team etwas zu erreichen.</p>
       </div>
       <div class="facts">
         <div class="fact"><span class="fact-l">Standort</span><span class="fact-r"><?php echo htmlspecialchars($firma['kanton'] . ', ' . $firma['land']); ?></span></div>
@@ -632,30 +632,30 @@ foreach ($projects as $p) {
 <div class="contact-band" id="kontakt">
   <div class="wrap">
     <div class="sec-label">Kontakt</div>
-    <h2>Beschäftigt dich etwas?</h2>
-    <p class="sec-intro">Schreib mir kurz was dich beschäftigt. Ich melde mich in der Regel innert einem Werktag.</p>
+    <h2>Du musst noch nicht wissen, was die Lösung ist. Erzähl mir einfach, was dich gerade nervt.</h2>
+    <p class="sec-intro">Schreib mir kurz, was dich beschäftigt. Ich melde mich in der Regel innert einem Werktag.</p>
 
     <form class="contact-form" id="contact-form" novalidate>
       <div class="form-group">
         <label for="cf-name">Dein Name</label>
-        <input type="text" id="cf-name" name="name" placeholder="Max Muster" autocomplete="name">
+        <input type="text" id="cf-name" name="name" placeholder="Wie darf ich dich nennen?" autocomplete="name">
         <span class="form-error" id="err-name"></span>
       </div>
       <div class="form-group">
         <label for="cf-mail">Deine E-Mail</label>
-        <input type="email" id="cf-mail" name="mail" placeholder="max@beispiel.ch" autocomplete="email">
+        <input type="email" id="cf-mail" name="mail" placeholder="Wo kann ich dir antworten?" autocomplete="email">
         <span class="form-error" id="err-mail"></span>
       </div>
       <div class="form-group">
-        <label for="cf-nachricht">Deine Nachricht</label>
-        <textarea id="cf-nachricht" name="nachricht" placeholder="Worum geht es?"></textarea>
+        <label for="cf-nachricht">Was beschäftigt dich?</label>
+        <textarea id="cf-nachricht" name="nachricht" placeholder="Erzähl mir kurz, was dich gerade beschäftigt."></textarea>
         <span class="form-error" id="err-nachricht"></span>
       </div>
       <?php if (!empty($hckey)): ?>
       <div class="h-captcha" data-sitekey="<?php echo htmlspecialchars($hckey); ?>"></div>
       <?php endif; ?>
       <div class="form-msg" id="form-msg"></div>
-      <button type="submit" class="btn-submit" id="btn-submit">Nachricht senden</button>
+      <button type="submit" class="btn-submit" id="btn-submit">Schauen wir uns an</button>
     </form>
   </div>
 </div>
