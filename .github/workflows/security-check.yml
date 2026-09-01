@@ -1,0 +1,208 @@
+name: Security Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Jeden Montag 07:00 UTC — auch ohne Push
+    - cron: '0 7 * * 1'
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PHP 8 installieren
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: config.php für Tests erstellen
+        run: |
+          cat > config.php << 'CONF'
+          <?php
+          return [
+            'firma' => [
+              'name'    => 'Wittwer Informatik',
+              'inhaber' => 'Simon Wittwer',
+              'strasse' => '',
+              'plz'     => '',
+              'ort'     => '',
+              'kanton'  => 'Kanton Bern',
+              'land'    => 'Schweiz',
+              'uid'     => 'CHE-348.095.495',
+              'mail'    => 'hallo@wittwer-informatik.ch',
+              'website' => 'https://wittwer-informatik.ch',
+            ],
+            'hcaptcha' => [
+              'site_key'   => '',
+              'secret_key' => '',
+            ],
+            'kontakt' => [
+              'empfaenger' => 'hallo@wittwer-informatik.ch',
+              'betreff'    => 'Test',
+              'absender'   => 'noreply@wittwer-informatik.ch',
+            ],
+            'seo' => [
+              'title'       => 'Wittwer Informatik',
+              'description' => 'Test',
+              'url'         => 'https://wittwer-informatik.ch',
+            ],
+          ];
+          CONF
+
+      - name: Lokalen Server starten
+        run: php -S localhost:8080 &
+
+      - name: Warten bis Server bereit
+        run: sleep 2
+
+      # -------------------------------------------------------
+      # A03 INJECTION — Mail-Header-Injection via contact.php
+      # -------------------------------------------------------
+      - name: "A03 | Mail-Header-Injection: CRLF im Namen"
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php \
+            -d "name=Test%0D%0ABcc%3A+spam%40evil.com&mail=test@test.ch&nachricht=Hallo+das+ist+ein+Test")
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q '"ok":false' || exit 1
+
+      - name: "A03 | Mail-Header-Injection: CRLF in der Mail-Adresse"
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php \
+            -d "name=Test&mail=test%40test.ch%0D%0ABcc%3A+spam%40evil.com&nachricht=Hallo+das+ist+ein+Test")
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q '"ok":false' || exit 1
+
+      - name: "A03 | SQL-Injection-Versuch im Kontaktformular (kein DB-Zugriff erwartet)"
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php \
+            -d "name='; DROP TABLE users; --&mail=test@test.ch&nachricht=Hallo+das+ist+ein+Test")
+          echo "$RESPONSE"
+          # Kein 500er — sauber abgefangen
+          echo "$RESPONSE" | grep -qi "fatal\|error\|exception" && exit 1 || echo "OK"
+
+      # -------------------------------------------------------
+      # A03 INJECTION — Path Traversal
+      # -------------------------------------------------------
+      - name: "A03 | Path Traversal: page-Parameter mit ../"
+        run: |
+          BODY=$(curl -s "http://localhost:8080/?page=../../etc/passwd")
+          echo "$BODY" | grep -qi "root:\|nobody:\|daemon:" && exit 1 || echo "OK"
+
+      - name: "A03 | Path Traversal: page-Parameter mit config"
+        run: |
+          BODY=$(curl -s "http://localhost:8080/?page=config")
+          # config.php darf nicht gerendert werden — landet auf Home
+          echo "$BODY" | grep -qi "secret_key\|hcaptcha" && exit 1 || echo "OK"
+
+      # -------------------------------------------------------
+      # A03 INJECTION — XSS (Reflected)
+      # -------------------------------------------------------
+      - name: "A03 XSS | Script-Tag im page-Parameter"
+        run: |
+          BODY=$(curl -s "http://localhost:8080/?page=<script>alert(1)</script>")
+          echo "$BODY" | grep -q "<script>alert(1)</script>" && exit 1 || echo "OK"
+
+      - name: "A03 XSS | XSS-Payload in POST-Feldern"
+        run: |
+          BODY=$(curl -s -X POST http://localhost:8080/contact.php \
+            -d 'name=<script>alert(1)</script>&mail=x@x.ch&nachricht=test')
+          echo "$BODY" | grep -q "<script>alert(1)</script>" && exit 1 || echo "OK"
+
+      # -------------------------------------------------------
+      # A05 SECURITY MISCONFIGURATION — PHP-Fehlerausgabe
+      # -------------------------------------------------------
+      - name: "A05 | Keine PHP-Fehler oder Warnings im Output"
+        run: |
+          BODY=$(curl -s http://localhost:8080/)
+          echo "$BODY" | grep -qiE "Fatal error|Parse error|Warning:|Notice:|Deprecated:" && exit 1 || echo "OK"
+
+      - name: "A05 | Kein phpinfo() erreichbar"
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/phpinfo.php)
+          [ "$STATUS" = "404" ] || [ "$STATUS" = "403" ] || echo "Warnung: phpinfo.php scheint erreichbar zu sein"
+
+      # -------------------------------------------------------
+      # A02 CRYPTOGRAPHIC FAILURES — Sensitive Files
+      # -------------------------------------------------------
+      - name: "A02 | config.php nicht direkt abrufbar"
+        run: |
+          BODY=$(curl -s http://localhost:8080/config.php)
+          # config.php gibt ein PHP-Array zurück, kein HTML
+          # Im Output darf kein secret_key stehen
+          echo "$BODY" | grep -qi "secret_key\|hcaptcha\|empfaenger" && exit 1 || echo "OK"
+
+      - name: "A02 | projects.php nicht direkt abrufbar"
+        run: |
+          BODY=$(curl -s http://localhost:8080/projects.php)
+          echo "$BODY" | grep -qi "beschreibung\|features\|stack" && exit 1 || echo "OK"
+
+      # -------------------------------------------------------
+      # A05 SECURITY MISCONFIGURATION — HTTP-Methoden
+      # -------------------------------------------------------
+      - name: "A05 | contact.php: PUT-Methode wird abgewiesen"
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X PUT http://localhost:8080/contact.php)
+          [ "$STATUS" = "405" ] || exit 1
+
+      - name: "A05 | contact.php: DELETE-Methode wird abgewiesen"
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:8080/contact.php)
+          [ "$STATUS" = "405" ] || exit 1
+
+      # -------------------------------------------------------
+      # A07 IDENTIFICATION FAILURES — Eingabevalidierung
+      # -------------------------------------------------------
+      - name: "A07 | Kontaktformular: leerer Name wird abgelehnt"
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php \
+            -d "name=&mail=test@test.ch&nachricht=Hallo+das+ist+ein+Test")
+          echo "$RESPONSE" | grep -q '"ok":false' || exit 1
+
+      - name: "A07 | Kontaktformular: ungültige E-Mail wird abgelehnt"
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php \
+            -d "name=Test&mail=keineemail&nachricht=Hallo+das+ist+ein+Test")
+          echo "$RESPONSE" | grep -q '"ok":false' || exit 1
+
+      - name: "A07 | Kontaktformular: zu kurze Nachricht wird abgelehnt"
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php \
+            -d "name=Test&mail=test@test.ch&nachricht=kurz")
+          echo "$RESPONSE" | grep -q '"ok":false' || exit 1
+
+      - name: "A07 | Kontaktformular: fehlendes Captcha wird abgelehnt"
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php \
+            -d "name=Test&mail=test@test.ch&nachricht=Hallo+das+ist+ein+Test")
+          echo "$RESPONSE" | grep -q '"ok":false' || exit 1
+
+      # -------------------------------------------------------
+      # STATIC ANALYSIS — grep auf bekannte Schwachstellenmuster
+      # -------------------------------------------------------
+      - name: "Static | Kein eval() im Code"
+        run: |
+          grep -rn "eval(" --include="*.php" . && exit 1 || echo "OK"
+
+      - name: "Static | Kein system() oder exec() im Code"
+        run: |
+          grep -rn "system(\|exec(\|shell_exec(\|passthru(" --include="*.php" . && exit 1 || echo "OK"
+
+      - name: "Static | Kein var_dump() oder print_r() im Produktivcode"
+        run: |
+          grep -rn "var_dump(\|print_r(" --include="*.php" . && exit 1 || echo "OK"
+
+      - name: "Static | Kein hardcodierter Secret-Key"
+        run: |
+          grep -rn "secret_key.*=.*['\"][a-zA-Z0-9]\{10,\}" --include="*.php" . && exit 1 || echo "OK"
+
+      - name: "Static | htmlspecialchars() wird für Ausgaben verwendet"
+        run: |
+          # Prüft ob htmlspecialchars in index.php vorhanden ist
+          grep -q "htmlspecialchars" index.php || exit 1
+          echo "OK"

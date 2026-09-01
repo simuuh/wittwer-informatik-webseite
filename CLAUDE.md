@@ -91,7 +91,7 @@ Für strukturelle Änderungen (neue Seite, Modal-Umbau, JS-Logik) kurz einen Fea
 
 ## GitHub Actions
 
-Zwei einfache Workflows schützen die Seite vor groben Fehlern.
+Drei Workflows schützen die Seite vor groben Fehlern.
 
 ### 1. PHP-Syntax-Check (bei jedem Push)
 
@@ -160,6 +160,21 @@ jobs:
 ```
 
 Der Smoke-Test startet die Seite lokal und prüft, ob alle drei Seiten antworten und `contact.php` keine leeren Anfragen durchlässt. Er braucht keine echten hCaptcha-Keys weil er keinen Submit auslöst.
+
+### 3. Security Check (bei Push auf main, PR und jeden Montag 07:00 UTC)
+
+Datei: `.github/workflows/security-check.yml`
+
+Fährt die Seite lokal hoch und testet gegen gängige OWASP-Kategorien:
+Mail-Header-Injection und XSS über das Kontaktformular, Path Traversal und
+reflektiertes XSS über den `page`-Parameter, direkter Abruf von `config.php`
+und `projects.php`, HTTP-Methoden auf `contact.php`, Eingabevalidierung sowie
+ein paar grep-Checks auf `eval()`, `exec()`, `var_dump()` und hardcodierte Keys.
+
+Erstellt sich wie der Smoke-Test eine eigene `config.php` mit leeren hCaptcha-Keys.
+Bei leerem Secret-Key überspringt `contact.php` die hCaptcha-Verifikation, das
+leere `h-captcha-response`-Feld führt aber weiterhin zu `{"ok":false}`. Darum
+erwarten die Formular-Tests eine Ablehnung.
 
 ## Deployment
 
