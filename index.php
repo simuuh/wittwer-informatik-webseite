@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Security-Header via PHP. OVHcloud Free Hosting hat kein mod_headers, darum hier.
 // HSTS wird bewusst nicht via PHP gesetzt.
 header_remove('X-Powered-By');
@@ -11,8 +11,8 @@ header(
     "Content-Security-Policy: "
     . "default-src 'self'; "
     . "script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; "
-    . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-    . "font-src 'self' https://fonts.gstatic.com; "
+    . "style-src 'self' 'unsafe-inline'; "
+    . "font-src 'self'; "
     . "frame-src https://newassets.hcaptcha.com; "
     . "connect-src 'self' https://api.hcaptcha.com; "
     . "img-src 'self' data:; "
@@ -43,6 +43,8 @@ function placeholder_svg(string $text, string $bg = '#e4e4e0', string $fg = '#9a
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<link rel="preload" as="image" href="/assets/images/logos/logo_transparent_250x64.png" fetchpriority="high">
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/ubuntu-700.woff2" crossorigin>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='4'%20fill='%233CB975'/%3E%3C/svg%3E">
@@ -73,12 +75,36 @@ function placeholder_svg(string $text, string $bg = '#e4e4e0', string $fg = '#9a
   "knowsLanguage": ["de", "en"]
 }
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-<?php if ($page === 'home' && !empty($hckey)): ?>
-<script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-<?php endif; ?>
+<style>
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/ubuntu-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/assets/fonts/ubuntu-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/inter-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/assets/fonts/inter-500.woff2') format('woff2');
+}
+</style>
 <style>
 :root {
   --green: #3CB975;
@@ -879,6 +905,24 @@ if (form) {
     btn.disabled = false;
     btn.textContent = 'Nachricht senden';
   });
+}
+
+// hCaptcha erst laden wenn Kontaktformular sichtbar
+const captchaTarget = document.querySelector('.h-captcha');
+if (captchaTarget) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const script = document.createElement('script');
+        script.src = 'https://js.hcaptcha.com/1/api.js';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+        observer.disconnect();
+      }
+    });
+  }, { rootMargin: '200px' });
+  observer.observe(captchaTarget);
 }
 </script>
 
