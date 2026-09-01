@@ -28,9 +28,9 @@ return [
         'url'         => 'https://versammlungshub.ch',
         'url_label'   => 'versammlungshub.ch',
         'bilder'      => [
-            // 'assets/projects/versammlungshub/hero.jpg',
-            // 'assets/projects/versammlungshub/abstimmung.jpg',
-            // 'assets/projects/versammlungshub/protokoll.jpg',
+            'assets/projects/versammlungshub/hero.jpg',
+            'assets/projects/versammlungshub/versammlung.jpg',
+            'assets/projects/versammlungshub/mitglieder.jpg',
         ],
     ],
 
@@ -52,11 +52,31 @@ return [
         'url'         => 'https://mitfahrli.ch',
         'url_label'   => 'mitfahrli.ch',
         'bilder'      => [
-            // 'assets/projects/mitfahrli/hero.jpg',
-            // 'assets/projects/mitfahrli/event.jpg',
+            'assets/projects/mitfahrli/hero.jpg',
+            'assets/projects/mitfahrli/sitz-reservieren.jpg',
+            'assets/projects/mitfahrli/uebersicht-fahrt.jpg',
         ],
     ],
-
+[
+    'slug'         => 'webothwant',
+    'name'         => 'WeBothWant',
+    'tag'          => 'App',
+    'status'       => 'Live',
+    'kurz'         => 'Anonymes Matching-Tool für Paare. Keine Daten gespeichert, kein Profil, kein Feed.',
+    'beschreibung' => 'WeBothWant löst ein einfaches Problem diskret: Beide Partner geben an was sie sich wünschen, ein Match erscheint nur wenn beide dasselbe gewählt haben. Gebaut mit Flask, PostgreSQL und Stripe. Von der Idee bis zur Monetarisierung eigenständig entwickelt und betrieben.',
+    'features'     => [
+        'Anonymes Matching, kein Profil nötig',
+        'Match nur sichtbar wenn beide übereinstimmen',
+        'Stripe-Integration (CHF 9.90)',
+        'Datenschutz by Design',
+    ],
+    'stack'        => ['Flask', 'PostgreSQL', 'Stripe', 'Docker'],
+    'url'          => 'https://webothwant.com',
+    'url_label'    => 'webothwant.com',
+    'bilder'       => [
+        'assets/projects/webothwant/hero.jpg',
+    ],
+],
     [
         'slug'        => 'platzhalter',
         'name'        => 'Nächstes Projekt',
