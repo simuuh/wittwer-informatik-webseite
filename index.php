@@ -464,7 +464,7 @@ h2 {
 
 <div class="wrap">
   <div class="hero">
-    <h1>Du hast ein Problem.<br>Ich find die <em>Lösung.</em></h1>
+    <h1>Du hast ein Problem.<br>Ich finde die <em>Lösung.</em></h1>
     <p class="hero-sub">Zuerst schaue ich was vorhanden ist. Dann wählen wir gemeinsam das Richtige, ob das eine bestehende Lösung ist oder eine Eigenentwicklung. Von Anfang bis Ende.</p>
     <a href="#kontakt" class="btn">Schreib mir</a>
   </div>
