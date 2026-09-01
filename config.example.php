@@ -31,8 +31,8 @@ return [
         'empfaenger'  => 'hallo@wittwer-informatik.ch',
         'betreff'     => 'Neue Kontaktanfrage, Wittwer Informatik',
         'absender'    => 'noreply@wittwer-informatik.ch',
-        'ahasend_key' => '',                       // TODO: API-Key aus Ahasend-Dashboard
-        'ahasend_url' => 'https://api.ahasend.com/v1/email/send',
+        'ahasend_key'        => '',                // TODO: API-Key aus Ahasend-Dashboard (Format: aha-sk-...)
+        'ahasend_account_id' => '',                // TODO: Account-ID aus Ahasend-Dashboard
     ],
 
     // SEO

@@ -99,31 +99,34 @@ if (!empty($hc['secret_key'])) {
 $k = $config['kontakt'];
 $f = $config['firma'];
 
-if (!empty($k['ahasend_key'])) {
-    // Mail senden via Ahasend SMTP API
+if (!empty($k['ahasend_key']) && !empty($k['ahasend_account_id'])) {
+    // Mail senden via Ahasend API v2
+    // Doku: https://ahasend.com/docs/api-reference/messages/create-message
+    $ahasend_url = 'https://api.ahasend.com/v2/accounts/' . $k['ahasend_account_id'] . '/messages';
+
     $payload = json_encode([
         'from' => [
-            'name'    => $f['name'],
-            'address' => $k['absender'],
+            'email' => $k['absender'],
+            'name'  => $f['name'],
         ],
-        'to' => [[
-            'address' => $k['empfaenger'],
+        'recipients' => [[
+            'email' => $k['empfaenger'],
         ]],
-        'reply_to' => [[
-            'address' => $mail,
-        ]],
-        'subject' => 'Kontaktanfrage von ' . $name,
-        'text'    => "Neue Kontaktanfrage über wittwer-informatik.ch\n\nName:   {$name}\nE-Mail: {$mail}\n---\n\n{$nachricht}",
+        'reply_to' => [
+            'email' => $mail,
+        ],
+        'subject'      => 'Kontaktanfrage von ' . $name,
+        'text_content' => "Neue Kontaktanfrage über wittwer-informatik.ch\n\nName:   {$name}\nE-Mail: {$mail}\n---\n\n{$nachricht}",
     ]);
 
-    $ch = curl_init($k['ahasend_url']);
+    $ch = curl_init($ahasend_url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => $payload,
         CURLOPT_HTTPHEADER     => [
             'Content-Type: application/json',
-            'X-Api-Key: ' . $k['ahasend_key'],
+            'Authorization: Bearer ' . $k['ahasend_key'],
         ],
         CURLOPT_TIMEOUT        => 10,
     ]);
@@ -132,6 +135,7 @@ if (!empty($k['ahasend_key'])) {
     $http_code    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
+    // Ahasend antwortet bei Erfolg mit 202 Accepted
     $gesendet = ($http_code >= 200 && $http_code < 300);
 } else {
     // Fallback: PHP mail()
