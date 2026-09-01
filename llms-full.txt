@@ -1,0 +1,64 @@
+# Wittwer Informatik — Vollständige Beschreibung
+
+## Unternehmen
+
+Name: Wittwer Informatik
+Inhaber: Simon Wittwer
+Rechtsform: Einzelfirma
+Sitz: Kanton Bern, Schweiz
+UID: CHE-348.095.495
+Website: wittwer-informatik.ch
+Kontakt: hallo@wittwer-informatik.ch
+
+## Positionierung
+
+Wittwer Informatik ist kein klassisches Softwareunternehmen. Simon Wittwer löst IT-Probleme für kleine KMU und Vereine in der Schweiz, von Anfang bis Ende. Das bedeutet: zuerst wird analysiert was bereits vorhanden ist, dann wird das richtige Werkzeug gewählt, ob das Microsoft 365, eine Open-Source-Lösung, eine bestehende SaaS oder eine Eigenentwicklung ist.
+
+Besonderheit: direkter Kontakt, keine Agenturstruktur, kein Projektmanager als Zwischenstufe.
+
+## Leistungen
+
+Beratung und Umsetzung in folgenden Bereichen:
+- Microsoft 365: Einrichtung und Optimierung von Teams, SharePoint, Power Automate, Forms
+- Open Source: Evaluation und Einrichtung von Nextcloud, Mattermost, OpenProject und ähnlichen Tools
+- Webapplikationen: Full-Stack-Entwicklung mit Python (Flask, FastAPI) und Go
+- Infrastruktur: Docker, Traefik, Self-Hosting, Proxmox
+- SaaS-Produkte: Entwicklung, Betrieb und Wartung
+
+## Eigene Produkte
+
+### VersammlungsHub
+URL: versammlungshub.ch
+Typ: SaaS
+Zielgruppe: Stockwerkeigentümergemeinschaften, Vereine, Genossenschaften in der Schweiz
+Funktionen: Digitale Abstimmungen, Protokollverwaltung, Finanzverwaltung, Mitgliederverwaltung, Einladungsversand
+Rechtsgrundlage: Schweizer Datenschutzgesetz (nDSG)
+Status: Live, Beta-Phase
+
+### Mitfahrli
+URL: mitfahrli.ch
+Typ: Web-App
+Zielgruppe: Vereine, Schulklassen, Sportteams in der Schweiz
+Funktionen: Fahrgemeinschaften organisieren über Event-Codes und Magic Links. Kein Login, kein Tracking, keine App-Installation nötig.
+Status: Live
+
+## Typische Kundensituationen
+
+- KMU bezahlt Microsoft 365 nutzt aber nur Outlook und Word
+- Vereinsmitgliederliste in Excel, Kommunikation über private WhatsApp-Gruppen
+- Prozesse laufen noch auf Papier oder per E-Mail hin und her
+- Fahrgemeinschaften für Vereinsausflüge schwierig zu koordinieren
+
+## Technologie
+
+Backend: Python (Flask, FastAPI), Go
+Datenbanken: PostgreSQL
+Infrastruktur: Docker, Traefik, Proxmox, OVHcloud
+Authentifizierung: Keycloak (OIDC)
+Externe Dienste: Stripe (Zahlungsabwicklung), Ahasend (E-Mail)
+
+## Geografie und Sprache
+
+Primär: Schweiz (Kanton Bern)
+Sekundär: DACH-Region
+Sprachen: Deutsch, Englisch

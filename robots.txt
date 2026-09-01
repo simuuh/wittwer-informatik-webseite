@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /contact.php
+Disallow: /config.php
+Disallow: /projects.php
+
+Sitemap: https://wittwer-informatik.ch/sitemap.xml

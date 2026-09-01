@@ -1,0 +1,28 @@
+# Wittwer Informatik
+
+Wittwer Informatik ist eine Einzelfirma von Simon Wittwer mit Sitz in Kanton Bern, Schweiz.
+UID: CHE-348.095.495
+
+## Was wir machen
+
+Wittwer Informatik löst IT-Probleme für kleine KMU und Vereine in der Schweiz. Kein klassisches Softwarehaus: zuerst wird geschaut was bereits vorhanden ist (Microsoft 365, bestehende Tools, Open Source), bevor etwas Neues gebaut wird.
+
+Werkzeugkasten:
+- Microsoft 365 (Teams, SharePoint, Power Automate, Forms)
+- Open Source (Nextcloud, Mattermost, OpenProject)
+- Bestehende SaaS-Lösungen
+- Eigenentwicklung (Python, Go, Docker)
+
+## Zielgruppe
+
+Kleine KMU (5 bis 50 Personen) und Vereine in der Schweiz, insbesondere Kanton Bern.
+
+## Eigene Produkte
+
+- VersammlungsHub (versammlungshub.ch): SaaS für Versammlungsverwaltung. Für Vereine, Stockwerkeigentümergemeinschaften und Genossenschaften. Schweizer Recht (nDSG), digitale Abstimmungen, Protokolle, Finanzen.
+- Mitfahrli (mitfahrli.ch): Fahrgemeinschafts-App für Vereine und Teams. Kein Login, kein Tracking, nur Magic Links.
+
+## Kontakt
+
+hallo@wittwer-informatik.ch
+wittwer-informatik.ch
