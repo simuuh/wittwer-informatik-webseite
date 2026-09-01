@@ -32,7 +32,7 @@ assets/
 ### Allgemein
 - Kein Composer, keine npm, keine externen PHP-Libraries.
 - Kein jQuery, kein Alpine.js, kein Framework. Nur Vanilla JS.
-- Google Fonts über CDN (bereits eingebunden): Ubuntu, Inter.
+- Google Fonts lokal unter assets/fonts/ (ubuntu-400.woff2, ubuntu-700.woff2, inter-400.woff2, inter-500.woff2). Nicht über CDN laden.
 - hCaptcha-Script wird nur auf der Startseite geladen.
 - Alle Texte in Schweizer Schreibstil: kein Gedankenstrich (weder — noch –). Punkt und Komma. Ganz selten ein Semikolon.
 
