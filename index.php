@@ -350,6 +350,8 @@ h2 {
 .legal a { color: var(--green); }
 
 @media (max-width: 720px) {
+  /* Nav über den Backdrop heben, sonst liegt das Slide-in dahinter */
+  nav { z-index: 200; }
   .nav-burger {
     display: flex; flex-direction: column; justify-content: center;
     gap: 5px; position: fixed; z-index: 210;
@@ -395,7 +397,7 @@ h2 {
 <nav>
   <div class="nav-inner">
     <a href="/" aria-label="Wittwer Informatik Startseite">
-      <img class="nav-logo" src="/logo_250x64.png" width="250" height="64" alt="Wittwer Informatik">
+      <img class="nav-logo" src="/assets/images/logos/logo_transparent_250x64.png" width="250" height="64" alt="Wittwer Informatik">
     </a>
     <ul class="nav-links" id="nav-links">
       <li><a href="/#wie">Wie ich helfe</a></li>

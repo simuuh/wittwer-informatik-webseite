@@ -1,0 +1,110 @@
+name: Smoke Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PHP 8 installieren
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: config.php für Tests erstellen
+        run: |
+          cat > config.php << 'CONF'
+          <?php
+          return [
+            'firma' => [
+              'name'    => 'Wittwer Informatik',
+              'inhaber' => 'Simon Wittwer',
+              'strasse' => 'Teststrasse 1',
+              'plz'     => '3000',
+              'ort'     => 'Bern',
+              'kanton'  => 'Kanton Bern',
+              'land'    => 'Schweiz',
+              'uid'     => 'CHE-348.095.495',
+              'mail'    => 'hallo@wittwer-informatik.ch',
+              'website' => 'https://wittwer-informatik.ch',
+            ],
+            'hcaptcha' => [
+              'site_key'   => '',
+              'secret_key' => '',
+            ],
+            'kontakt' => [
+              'empfaenger' => 'hallo@wittwer-informatik.ch',
+              'betreff'    => 'Neue Kontaktanfrage',
+              'absender'   => 'noreply@wittwer-informatik.ch',
+            ],
+            'seo' => [
+              'title'       => 'Wittwer Informatik',
+              'description' => 'IT-Loesungen fuer KMU und Vereine.',
+              'url'         => 'https://wittwer-informatik.ch',
+            ],
+          ];
+          CONF
+
+      - name: Lokalen Server starten
+        run: php -S localhost:8080 &
+
+      - name: Warten bis Server bereit
+        run: sleep 2
+
+      - name: Startseite erreichbar
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/)
+          echo "Startseite HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: Impressum erreichbar
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080/?page=impressum")
+          echo "Impressum HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: Datenschutz erreichbar
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080/?page=datenschutz")
+          echo "Datenschutz HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: Unbekannte Seite landet auf Home
+        run: |
+          BODY=$(curl -s "http://localhost:8080/?page=irgendwas")
+          echo "$BODY" | grep -q "Ich find die" || exit 1
+
+      - name: contact.php blockiert leere POST-Anfragen
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php)
+          echo "$RESPONSE" | grep -q '"ok":false' || exit 1
+
+      - name: contact.php blockiert GET-Anfragen
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/contact.php)
+          echo "contact.php GET HTTP $STATUS"
+          [ "$STATUS" = "405" ] || exit 1
+
+      - name: Keine PHP-Fehler auf Startseite
+        run: |
+          BODY=$(curl -s http://localhost:8080/)
+          echo "$BODY" | grep -qi "fatal error\|parse error\|warning:" && exit 1 || echo "Keine PHP-Fehler"
+
+      - name: robots.txt erreichbar
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/robots.txt)
+          echo "robots.txt HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: sitemap.xml erreichbar
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/sitemap.xml)
+          echo "sitemap.xml HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1

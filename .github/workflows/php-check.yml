@@ -1,0 +1,21 @@
+name: PHP Syntax Check
+
+on: [push, pull_request]
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PHP 8 installieren
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Syntax prüfen
+        run: |
+          php -l index.php
+          php -l config.php
+          php -l projects.php
+          php -l contact.php
