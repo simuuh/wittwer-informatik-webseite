@@ -114,10 +114,14 @@ jobs:
       - name: Syntax prüfen
         run: |
           php -l index.php
-          php -l config.php
+          php -l config.example.php
           php -l projects.php
           php -l contact.php
 ```
+
+Hinweis: `config.php` steht in `.gitignore` und ist im CI-Checkout nicht vorhanden.
+Der Syntax-Check prüft darum `config.example.php`. Die beiden Dateien haben die
+gleiche Struktur, ein Syntaxfehler in einer fällt so trotzdem auf.
 
 ### 2. Link- und Response-Check (bei Push auf main)
 

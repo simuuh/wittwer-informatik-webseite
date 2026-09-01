@@ -16,6 +16,6 @@ jobs:
       - name: Syntax prüfen
         run: |
           php -l index.php
-          php -l config.php
+          php -l config.example.php
           php -l projects.php
           php -l contact.php
