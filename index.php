@@ -1,4 +1,26 @@
 ﻿<?php
+// Security-Header via PHP. OVHcloud Free Hosting hat kein mod_headers, darum hier.
+// HSTS wird bewusst nicht via PHP gesetzt.
+header_remove('X-Powered-By');
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()');
+header('X-XSS-Protection: 1; mode=block');
+header(
+    "Content-Security-Policy: "
+    . "default-src 'self'; "
+    . "script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; "
+    . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+    . "font-src 'self' https://fonts.gstatic.com; "
+    . "frame-src https://newassets.hcaptcha.com; "
+    . "connect-src 'self' https://api.hcaptcha.com; "
+    . "img-src 'self' data:; "
+    . "object-src 'none'; "
+    . "base-uri 'self'; "
+    . "form-action 'self'"
+);
+
 $config   = require __DIR__ . '/config.php';
 $projects = require __DIR__ . '/projects.php';
 $firma    = $config['firma'];
