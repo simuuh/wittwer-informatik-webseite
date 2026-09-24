@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # Jeden Montag 07:00 UTC — auch ohne Push
+    # Jeden Montag 07:00 UTC, auch ohne Push
     - cron: '0 7 * * 1'
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
         run: sleep 2
 
       # -------------------------------------------------------
-      # A03 INJECTION — Path Traversal
+      # A03 INJECTION: Path Traversal
       # -------------------------------------------------------
       - name: "A03 | Path Traversal: page-Parameter mit ../"
         run: |
@@ -68,7 +68,7 @@ jobs:
           echo "$BODY" | grep -q "return \[\|'firma'" && exit 1 || echo "OK"
 
       # -------------------------------------------------------
-      # A03 INJECTION — XSS (Reflected)
+      # A03 INJECTION: XSS (Reflected)
       # -------------------------------------------------------
       - name: "A03 XSS | Script-Tag im page-Parameter"
         run: |
@@ -76,20 +76,29 @@ jobs:
           echo "$BODY" | grep -q "<script>alert(1)</script>" && exit 1 || echo "OK"
 
       # -------------------------------------------------------
-      # A05 SECURITY MISCONFIGURATION — PHP-Fehlerausgabe
+      # A05 SECURITY MISCONFIGURATION: PHP-Fehlerausgabe
       # -------------------------------------------------------
       - name: "A05 | Keine PHP-Fehler oder Warnings im Output"
         run: |
-          BODY=$(curl -s http://localhost:8080/)
-          echo "$BODY" | grep -qiE "Fatal error|Parse error|Warning:|Notice:|Deprecated:" && exit 1 || echo "OK"
+          for P in home impressum datenschutz; do
+            BODY=$(curl -s "http://localhost:8080/?page=$P")
+            echo "$BODY" | grep -qiE "Fatal error|Parse error|Warning:|Notice:|Deprecated:" && { echo "PHP-Fehler auf $P"; exit 1; }
+          done
+          echo "OK"
+
+      - name: "A05 | CSP ohne unsafe-inline bei script-src"
+        run: |
+          CSP=$(curl -sI http://localhost:8080/ | grep -i "^content-security-policy:")
+          echo "$CSP"
+          echo "$CSP" | grep -q "script-src 'self';" || exit 1
 
       - name: "A05 | Kein phpinfo() erreichbar"
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/phpinfo.php)
-          [ "$STATUS" = "404" ] || [ "$STATUS" = "403" ] || echo "Warnung: phpinfo.php scheint erreichbar zu sein"
+          # Der PHP-Testserver kann unbekannte Pfade auf index.php umleiten, darum auf den Inhalt prüfen
+          curl -s http://localhost:8080/phpinfo.php | grep -q "phpinfo()" && exit 1 || echo "OK"
 
       # -------------------------------------------------------
-      # A02 CRYPTOGRAPHIC FAILURES — Sensitive Files
+      # A02 CRYPTOGRAPHIC FAILURES: Sensitive Files
       # -------------------------------------------------------
       - name: "A02 | config.php nicht direkt abrufbar"
         run: |
@@ -104,7 +113,7 @@ jobs:
           echo "$BODY" | grep -qi "beschreibung\|features\|stack" && exit 1 || echo "OK"
 
       # -------------------------------------------------------
-      # STATIC ANALYSIS — grep auf bekannte Schwachstellenmuster
+      # STATIC ANALYSIS: grep auf bekannte Schwachstellenmuster
       # -------------------------------------------------------
       - name: "Static | Kein eval() im Code"
         run: |
@@ -122,8 +131,11 @@ jobs:
         run: |
           grep -rn "secret_key.*=.*['\"][a-zA-Z0-9]\{10,\}" --include="*.php" . && exit 1 || echo "OK"
 
-      - name: "Static | htmlspecialchars() wird für Ausgaben verwendet"
+      - name: "Static | Keine unescapten Variablen-Ausgaben"
         run: |
-          # Prüft ob htmlspecialchars in index.php vorhanden ist
-          grep -q "htmlspecialchars" index.php || exit 1
-          echo "OK"
+          # Jede Ausgabe einer Variable muss über htmlspecialchars() oder json_encode() laufen
+          grep -nE "echo \$" index.php && exit 1 || echo "OK"
+
+      - name: "Static | Keine Inline-Event-Handler (CSP)"
+        run: |
+          grep -nE " on[a-z]+=\"" index.php && exit 1 || echo "OK"

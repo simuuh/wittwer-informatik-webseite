@@ -1,6 +1,6 @@
 <?php
 /**
- * Wittwer Informatik — Zentrale Konfiguration
+ * Wittwer Informatik: Zentrale Konfiguration
  * Hier alle dynamischen Werte anpassen.
  */
 return [

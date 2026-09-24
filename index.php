@@ -10,14 +10,14 @@ header('X-XSS-Protection: 0');
 header(
     "Content-Security-Policy: "
     . "default-src 'self'; "
-    . "script-src 'self' 'unsafe-inline'; "
+    . "script-src 'self'; "
     . "style-src 'self' 'unsafe-inline'; "
     . "font-src 'self'; "
-    . "connect-src 'self'; "
     . "img-src 'self' data:; "
     . "object-src 'none'; "
     . "base-uri 'self'; "
-    . "form-action 'self'"
+    . "form-action 'none'; "
+    . "frame-ancestors 'none'"
 );
 
 $config   = require __DIR__ . '/config.php';
@@ -28,6 +28,36 @@ $seo      = $config['seo'];
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 $allowed = ['home', 'impressum', 'datenschutz'];
 if (!in_array($page, $allowed)) $page = 'home';
+
+// Seitenspezifische Metadaten (Titel, Description, Canonical)
+$meta = [
+    'home'        => ['title' => $seo['title'], 'description' => $seo['description'], 'path' => '/'],
+    'impressum'   => ['title' => 'Impressum | ' . $firma['name'], 'description' => 'Impressum von ' . $firma['name'] . '. Kontaktangaben und rechtliche Hinweise.', 'path' => '/?page=impressum'],
+    'datenschutz' => ['title' => 'Datenschutz | ' . $firma['name'], 'description' => 'Datenschutzerklärung von ' . $firma['name'] . ' nach Schweizer Datenschutzgesetz (nDSG).', 'path' => '/?page=datenschutz'],
+][$page];
+$canonical = $seo['url'] . $meta['path'];
+
+// Schema.org JSON-LD. Leere Adressfelder werden weggelassen.
+$jsonld = [
+    '@context'      => 'https://schema.org',
+    '@type'         => 'LocalBusiness',
+    'name'          => $firma['name'],
+    'description'   => $seo['description'],
+    'url'           => $firma['website'],
+    'email'         => $firma['mail'],
+    'founder'       => ['@type' => 'Person', 'name' => $firma['inhaber']],
+    'address'       => array_filter([
+        '@type'           => 'PostalAddress',
+        'streetAddress'   => $firma['strasse'],
+        'postalCode'      => $firma['plz'],
+        'addressLocality' => $firma['ort'],
+        'addressRegion'   => 'BE',
+        'addressCountry'  => 'CH',
+    ]),
+    'areaServed'    => 'CH',
+    'knowsLanguage' => ['de', 'en'],
+];
+$json_flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG;
 
 // Hilfsfunktion: Platzhalter-SVG als Data-URI
 function placeholder_svg(string $text, string $bg = '#e4e4e0', string $fg = '#9a9a94'): string {
@@ -41,38 +71,21 @@ function placeholder_svg(string $text, string $bg = '#e4e4e0', string $fg = '#9a
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<link rel="preload" as="image" href="/assets/images/logos/logo_transparent_250x64.png" fetchpriority="high">
-<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/ubuntu-700.woff2" crossorigin>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preload" as="image" href="/assets/images/logos/logo_transparent_250x64.png" fetchpriority="high">
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/ubuntu-700.woff2" crossorigin>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='4'%20fill='%233CB975'/%3E%3C/svg%3E">
-<title><?php
-    if ($page === 'impressum')    echo 'Impressum | Wittwer Informatik';
-    elseif ($page === 'datenschutz') echo 'Datenschutz | Wittwer Informatik';
-    else echo htmlspecialchars($seo['title']);
-?></title>
-<meta name="description" content="<?php echo htmlspecialchars($seo['description']); ?>">
+<title><?php echo htmlspecialchars($meta['title']); ?></title>
+<meta name="description" content="<?php echo htmlspecialchars($meta['description']); ?>">
 <meta name="author" content="<?php echo htmlspecialchars($firma['inhaber'] . ', ' . $firma['name']); ?>">
-<link rel="canonical" href="<?php echo htmlspecialchars($seo['url']); ?>/">
-<meta property="og:title" content="<?php echo htmlspecialchars($seo['title']); ?>">
-<meta property="og:description" content="<?php echo htmlspecialchars($seo['description']); ?>">
+<link rel="canonical" href="<?php echo htmlspecialchars($canonical); ?>">
+<meta property="og:title" content="<?php echo htmlspecialchars($meta['title']); ?>">
+<meta property="og:description" content="<?php echo htmlspecialchars($meta['description']); ?>">
 <meta property="og:type" content="website">
-<meta property="og:url" content="<?php echo htmlspecialchars($seo['url']); ?>/">
+<meta property="og:url" content="<?php echo htmlspecialchars($canonical); ?>">
 <meta property="og:locale" content="de_CH">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "name": "<?php echo $firma['name']; ?>",
-  "description": "IT-Beratung und Softwareentwicklung für KMU und Vereine in der Schweiz.",
-  "url": "<?php echo $firma['website']; ?>",
-  "email": "<?php echo $firma['mail']; ?>",
-  "founder": {"@type": "Person", "name": "<?php echo $firma['inhaber']; ?>"},
-  "address": {"@type": "PostalAddress", "addressRegion": "BE", "addressCountry": "CH"},
-  "areaServed": "CH",
-  "knowsLanguage": ["de", "en"]
-}
-</script>
+<script type="application/ld+json"><?php echo json_encode($jsonld, $json_flags); ?></script>
 <style>
 @font-face {
   font-family: 'Ubuntu';
@@ -121,6 +134,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
+body.no-scroll { overflow: hidden; }
 nav {
   position: sticky; top: 0; z-index: 100;
   background: var(--bg);
@@ -302,6 +316,7 @@ h2 {
   border: 2px solid var(--ink); transition: background 0.15s, color 0.15s;
 }
 .modal-link:hover { background: transparent; color: var(--ink); }
+.modal-link[hidden] { display: none; }
 
 /* ABOUT */
 .about-grid {
@@ -329,7 +344,6 @@ h2 {
 
 /* KONTAKT */
 .contact-band { background: var(--ink); padding: 5rem 0; }
-.contact-band .sec-label { color: var(--green); }
 .contact-band h2 { color: var(--bg); margin-bottom: 0.75rem; }
 .contact-band .sec-intro { color: rgba(255,255,255,0.45); margin-bottom: 2rem; }
 .contact-link {
@@ -369,6 +383,7 @@ h2 {
 .legal ul { margin-left: 1.25rem; margin-top: 0.5rem; margin-bottom: 0.75rem; }
 .legal li { font-size: 0.9375rem; color: var(--mid); line-height: 2; }
 .legal a { color: var(--green); }
+.legal-more { margin-top: 2rem; }
 
 @media (max-width: 720px) {
   .contact-link { font-size: 1.0625rem; padding: 0.8rem 1rem; }
@@ -476,7 +491,7 @@ h2 {
         <div class="step-num">3</div>
         <div>
           <h3>Umsetzen und betreiben</h3>
-          <p>Ich setze die Lösung um, erkläre dir, was ich gemacht habe, und bin auch danach noch da. Kein "Deploy and forget"</p>
+          <p>Ich setze die Lösung um, erkläre dir, was ich gemacht habe, und bin auch danach noch da. Kein «Deploy and forget».</p>
         </div>
       </div>
     </div>
@@ -489,7 +504,7 @@ h2 {
   <div class="wrap">
     <div class="sec-label">Typische Situationen</div>
     <h2>Kommt dir das bekannt vor?</h2>
-    <p class="sec-intro">Keine Theorie. Das sind echte Probleme, die ich bereits gelöst habe. </p>
+    <p class="sec-intro">Keine Theorie. Das sind echte Probleme, die ich bereits gelöst habe.</p>
     <div class="examples">
       <div class="ex">
         <svg class="ex-icon" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 2v4M16 2v4M2 10h20"/></svg>
@@ -531,7 +546,7 @@ h2 {
             <p><?php echo htmlspecialchars($p['kurz']); ?></p>
           </div>
         <?php else: ?>
-          <div class="proj" onclick="openModal('<?php echo $p['slug']; ?>')" role="button" tabindex="0" aria-label="<?php echo htmlspecialchars($p['name']); ?> Details öffnen" onkeydown="if(event.key==='Enter')openModal('<?php echo $p['slug']; ?>')">
+          <div class="proj" data-slug="<?php echo htmlspecialchars($p['slug']); ?>" role="button" tabindex="0" aria-haspopup="dialog" aria-label="<?php echo htmlspecialchars($p['name']); ?> Details öffnen">
             <span class="proj-tag"><?php echo htmlspecialchars($p['tag'] . ' · ' . $p['status']); ?></span>
             <h3><?php echo htmlspecialchars($p['name']); ?></h3>
             <p><?php echo htmlspecialchars($p['kurz']); ?></p>
@@ -564,11 +579,12 @@ foreach ($projects as $p) {
     ];
 }
 ?>
+<script type="application/json" id="projekte-data"><?php echo json_encode($modal_data, $json_flags); ?></script>
 
 <!-- MODALS -->
 <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal" id="modal-box">
-    <button class="modal-close" onclick="closeModal()" aria-label="Schliessen">&#x2715;</button>
+    <button class="modal-close" id="modal-close" type="button" aria-label="Schliessen">&#x2715;</button>
     <img class="modal-img-main" id="modal-img-main" src="" alt="">
     <div class="modal-thumbs" id="modal-thumbs"></div>
     <div class="modal-body">
@@ -638,7 +654,7 @@ foreach ($projects as $p) {
     <p>Für externe Links zu fremden Websites wird keine Verantwortung übernommen. Für den Inhalt verlinkter Seiten sind ausschliesslich deren Betreiber verantwortlich.</p>
     <h2>Gerichtsstand</h2>
     <p>Es gilt Schweizer Recht. Gerichtsstand ist <?php echo htmlspecialchars($firma['kanton']); ?>, <?php echo htmlspecialchars($firma['land']); ?>.</p>
-    <p style="margin-top:2rem;"><a href="/?page=datenschutz">Zur Datenschutzerklärung</a></p>
+    <p class="legal-more"><a href="/?page=datenschutz">Zur Datenschutzerklärung</a></p>
   </div>
 </div>
 
@@ -652,22 +668,28 @@ foreach ($projects as $p) {
     <h2>Verantwortlicher</h2>
     <p>
       <?php echo htmlspecialchars($firma['name'] . ', ' . $firma['inhaber']); ?><br>
+      <?php if (!empty($firma['strasse'])): ?>
+        <?php echo htmlspecialchars($firma['strasse']); ?><br>
+        <?php echo htmlspecialchars($firma['plz'] . ' ' . $firma['ort']); ?><br>
+      <?php endif; ?>
       <?php echo htmlspecialchars($firma['kanton'] . ', ' . $firma['land']); ?><br>
       UID: <?php echo htmlspecialchars($firma['uid']); ?><br>
       <a href="mailto:<?php echo htmlspecialchars($firma['mail']); ?>"><?php echo htmlspecialchars($firma['mail']); ?></a>
     </p>
     <h2>Welche Daten erhoben werden</h2>
     <p>Beim Besuch dieser Website speichert der Webserver automatisch technische Zugriffsdaten: IP-Adresse, Zeitpunkt des Zugriffs, aufgerufene Seite, verwendeter Browser und Betriebssystem. Diese Daten sind für den technischen Betrieb notwendig und werden nach spätestens 30 Tagen gelöscht.</p>
-    <p>Wenn du per E-Mail Kontakt aufnimmst, werden Name, E-Mail-Adresse und Nachrichteninhalt ausschliesslich zur Bearbeitung deiner Anfrage verwendet. Es findet keine Weitergabe an Dritte statt.</p>
+    <p>Wenn du per E-Mail Kontakt aufnimmst, werden deine E-Mail-Adresse, dein Name (falls angegeben) und der Inhalt deiner Nachricht ausschliesslich zur Bearbeitung deiner Anfrage verwendet. Es findet keine Weitergabe an Dritte statt.</p>
+    <h2>Hosting und E-Mail</h2>
+    <p>Die Website wird bei OVHcloud gehostet. E-Mails werden auf einem selbst betriebenen Mailserver (mailcow) gespeichert, der ebenfalls bei OVHcloud läuft. OVHcloud bearbeitet die Daten dabei nur als technischer Dienstleister.</p>
     <h2>Zweck der Datenbearbeitung</h2>
     <p>Technische Zugriffsdaten: Sicherstellung des Betriebs und Sicherheit der Website. Kontaktanfragen: Bearbeitung und Beantwortung deiner Anfrage.</p>
     <h2>Drittdienste</h2>
     <p>Die Schriftarten (Ubuntu, Inter) werden direkt von diesem Webserver geladen. Es findet dabei keine Verbindung zu Google oder anderen Anbietern statt.</p>
     <p>Es werden keine Drittdienste eingesetzt. Kein Google Analytics, keine Social-Media-Einbindungen, keine Werbenetzwerke.</p>
     <h2>Cookies</h2>
-    <p>Diese Website setzt keine Tracking-Cookies. Es werden ausschliesslich technisch notwendige Session-Cookies des Webservers verwendet. Ein Cookie-Banner ist nach Schweizer Recht nicht erforderlich.</p>
+    <p>Diese Website setzt keine Cookies. Ein Cookie-Banner ist darum nicht erforderlich.</p>
     <h2>Auslandtransfers</h2>
-    <p>Es findet keine Datenübermittlung in die USA oder andere Drittstaaten statt. Alle Daten verbleiben auf Servern in der Schweiz oder der EU (OVHcloud, Frankreich).</p>
+    <p>Es findet keine Datenübermittlung in die USA oder andere Drittstaaten statt. Website und Mailserver laufen auf Servern von OVHcloud in der EU.</p>
     <h2>Deine Rechte nach nDSG</h2>
     <p>Du hast folgende Rechte bezüglich deiner Personendaten:</p>
     <ul>
@@ -696,106 +718,7 @@ foreach ($projects as $p) {
   </div>
 </div>
 
-<script>
-<?php if ($page === 'home'): ?>
-// Modal-Daten aus PHP (Modal existiert nur auf der Startseite)
-const PROJEKTE = <?php echo json_encode($modal_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-
-function openModal(slug) {
-  const p = PROJEKTE[slug];
-  if (!p) return;
-
-  // Bilder
-  const hauptbild = document.getElementById('modal-img-main');
-  hauptbild.src = p.bilder[0] || '';
-  hauptbild.alt = p.name;
-
-  // Thumbnails
-  const thumbs = document.getElementById('modal-thumbs');
-  thumbs.innerHTML = '';
-  if (p.bilder.length > 1) {
-    p.bilder.forEach((src, i) => {
-      const img = document.createElement('img');
-      img.src = src; img.alt = p.name + ' Bild ' + (i + 1);
-      img.className = 'modal-thumb' + (i === 0 ? ' active' : '');
-      img.onclick = () => {
-        hauptbild.src = src;
-        thumbs.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
-        img.classList.add('active');
-      };
-      thumbs.appendChild(img);
-    });
-  }
-
-  document.getElementById('modal-title').textContent = p.name;
-  document.getElementById('modal-beschreibung').textContent = p.beschreibung;
-
-  const ul = document.getElementById('modal-features');
-  ul.innerHTML = '';
-  p.features.forEach(f => {
-    const li = document.createElement('li');
-    li.textContent = f;
-    ul.appendChild(li);
-  });
-
-  const stack = document.getElementById('modal-stack');
-  stack.innerHTML = '';
-  p.stack.forEach(s => {
-    const span = document.createElement('span');
-    span.textContent = s;
-    stack.appendChild(span);
-  });
-
-  const link = document.getElementById('modal-link');
-  if (p.url) {
-    link.href = p.url;
-    link.textContent = p.url_label;
-    link.style.display = 'inline-block';
-  } else {
-    link.style.display = 'none';
-  }
-
-  document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-document.getElementById('modal-overlay').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeModal();
-});
-<?php endif; ?>
-
-// Burger-Menü (Mobile, Slide-in von rechts)
-const navBurger = document.getElementById('nav-burger');
-const navLinks = document.getElementById('nav-links');
-const navBackdrop = document.getElementById('nav-backdrop');
-
-function setMenu(open) {
-  navBurger.classList.toggle('open', open);
-  navLinks.classList.toggle('open', open);
-  navBackdrop.classList.toggle('open', open);
-  navBurger.setAttribute('aria-expanded', open ? 'true' : 'false');
-  navBurger.setAttribute('aria-label', open ? 'Menü schliessen' : 'Menü öffnen');
-  document.body.style.overflow = open ? 'hidden' : '';
-}
-
-if (navBurger) {
-  navBurger.addEventListener('click', () => setMenu(!navLinks.classList.contains('open')));
-  navBackdrop.addEventListener('click', () => setMenu(false));
-  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 720 && navLinks.classList.contains('open')) setMenu(false);
-  });
-}
-</script>
+<script src="/assets/main.js?v=<?php echo filemtime(__DIR__ . '/assets/main.js'); ?>"></script>
 
 </body>
 </html>

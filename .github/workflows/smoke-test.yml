@@ -77,10 +77,19 @@ jobs:
           BODY=$(curl -s http://localhost:8080/)
           echo "$BODY" | grep -q 'mailto:hallo@wittwer-informatik.ch?subject=' || exit 1
 
-      - name: Keine PHP-Fehler auf Startseite
+      - name: Keine PHP-Fehler auf allen Seiten
         run: |
-          BODY=$(curl -s http://localhost:8080/)
-          echo "$BODY" | grep -qi "fatal error\|parse error\|warning:" && exit 1 || echo "Keine PHP-Fehler"
+          for P in home impressum datenschutz; do
+            BODY=$(curl -s "http://localhost:8080/?page=$P")
+            echo "$BODY" | grep -qiE "fatal error|parse error|warning:|notice:|deprecated:" && { echo "PHP-Fehler auf $P"; exit 1; }
+          done
+          echo "Keine PHP-Fehler"
+
+      - name: main.js erreichbar
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/assets/main.js)
+          echo "main.js HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
 
       - name: robots.txt erreichbar
         run: |
