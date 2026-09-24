@@ -121,7 +121,7 @@ jobs:
 
       - name: "Static | Kein system() oder exec() im Code"
         run: |
-          grep -rn "system(\|exec(\|shell_exec(\|passthru(" --include="*.php" . && exit 1 || echo "OK"
+          grep -Prn "\b(system|exec|shell_exec|passthru)\s*\(" --include="*.php" . && exit 1 || echo "OK"
 
       - name: "Static | Kein var_dump() oder print_r() im Produktivcode"
         run: |
