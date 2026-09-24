@@ -70,7 +70,7 @@ jobs:
       - name: Unbekannte Seite landet auf Home
         run: |
           BODY=$(curl -s "http://localhost:8080/?page=irgendwas")
-          echo "$BODY" | grep -q "Ich find die" || exit 1
+          echo "$BODY" | grep -q 'id="projekte"' || exit 1
 
       - name: Kontakt-Link mit Betreff vorhanden
         run: |

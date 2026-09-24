@@ -697,7 +697,8 @@ foreach ($projects as $p) {
 </div>
 
 <script>
-// Modal-Daten aus PHP
+<?php if ($page === 'home'): ?>
+// Modal-Daten aus PHP (Modal existiert nur auf der Startseite)
 const PROJEKTE = <?php echo json_encode($modal_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
 function openModal(slug) {
@@ -769,6 +770,7 @@ document.getElementById('modal-overlay').addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeModal();
 });
+<?php endif; ?>
 
 // Burger-Menü (Mobile, Slide-in von rechts)
 const navBurger = document.getElementById('nav-burger');
