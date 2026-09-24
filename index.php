@@ -10,11 +10,10 @@ header('X-XSS-Protection: 0');
 header(
     "Content-Security-Policy: "
     . "default-src 'self'; "
-    . "script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; "
+    . "script-src 'self' 'unsafe-inline'; "
     . "style-src 'self' 'unsafe-inline'; "
     . "font-src 'self'; "
-    . "frame-src https://newassets.hcaptcha.com; "
-    . "connect-src 'self' https://api.hcaptcha.com; "
+    . "connect-src 'self'; "
     . "img-src 'self' data:; "
     . "object-src 'none'; "
     . "base-uri 'self'; "
@@ -25,7 +24,6 @@ $config   = require __DIR__ . '/config.php';
 $projects = require __DIR__ . '/projects.php';
 $firma    = $config['firma'];
 $seo      = $config['seo'];
-$hckey    = $config['hcaptcha']['site_key'];
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 $allowed = ['home', 'impressum', 'datenschutz'];
@@ -334,46 +332,21 @@ h2 {
 .contact-band .sec-label { color: var(--green); }
 .contact-band h2 { color: var(--bg); margin-bottom: 0.75rem; }
 .contact-band .sec-intro { color: rgba(255,255,255,0.45); margin-bottom: 2rem; }
-
-/* FORMULAR */
-.contact-form { max-width: 520px; display: flex; flex-direction: column; gap: 1rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
-.form-group label { font-size: 0.8125rem; font-weight: 500; color: rgba(255,255,255,0.6); }
-.form-group input,
-.form-group textarea {
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: var(--bg);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
-  padding: 0.7rem 0.9rem;
-  outline: none;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-.form-group input::placeholder,
-.form-group textarea::placeholder { color: rgba(255,255,255,0.25); }
-.form-group input:focus,
-.form-group textarea:focus { border-color: var(--green); }
-.form-group textarea { resize: vertical; min-height: 130px; }
-.form-error { font-size: 0.8125rem; color: #f87171; margin-top: 0.25rem; display: none; }
-.form-msg {
-  font-size: 0.875rem; padding: 0.75rem 1rem;
-  display: none; margin-top: 0.5rem;
-}
-.form-msg.ok { background: rgba(60,185,117,0.15); color: var(--green); }
-.form-msg.err { background: rgba(248,113,113,0.15); color: #f87171; }
-.btn-submit {
-  background: var(--green); color: var(--ink);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem; font-weight: 500;
-  padding: 0.7rem 1.6rem;
+.contact-link {
+  display: inline-flex; align-items: center; gap: 0.75rem;
+  max-width: 100%;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 1.375rem; font-weight: 700;
+  color: var(--bg); text-decoration: none;
+  padding: 0.9rem 1.4rem;
   border: 2px solid var(--green);
-  cursor: pointer; transition: opacity 0.15s;
-  align-self: flex-start;
+  transition: background 0.15s, color 0.15s;
 }
-.btn-submit:hover { opacity: 0.85; }
-.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.contact-link svg { color: var(--green); flex-shrink: 0; transition: color 0.15s; }
+.contact-link span { overflow-wrap: anywhere; }
+.contact-link:hover { background: var(--green); color: var(--ink); }
+.contact-link:hover svg { color: var(--ink); }
+.contact-link:focus-visible { outline: 2px solid var(--bg); outline-offset: 3px; }
 
 /* FOOTER */
 .footer-inner {
@@ -398,6 +371,7 @@ h2 {
 .legal a { color: var(--green); }
 
 @media (max-width: 720px) {
+  .contact-link { font-size: 1.0625rem; padding: 0.8rem 1rem; }
   /* Nav über den Backdrop heben, sonst liegt das Slide-in dahinter */
   nav { z-index: 200; }
   .nav-burger {
@@ -632,31 +606,12 @@ foreach ($projects as $p) {
 <div class="contact-band" id="kontakt">
   <div class="wrap">
     <div class="sec-label">Kontakt</div>
-    <h2>Du musst noch nicht wissen, was die Lösung ist. Erzähl mir einfach, was dich gerade nervt.</h2>
-    <p class="sec-intro">Schreib mir kurz, was dich beschäftigt. Ich melde mich in der Regel innert einem Werktag.</p>
-
-    <form class="contact-form" id="contact-form" novalidate>
-      <div class="form-group">
-        <label for="cf-name">Dein Name</label>
-        <input type="text" id="cf-name" name="name" placeholder="Wie darf ich dich nennen?" autocomplete="name">
-        <span class="form-error" id="err-name"></span>
-      </div>
-      <div class="form-group">
-        <label for="cf-mail">Deine E-Mail</label>
-        <input type="email" id="cf-mail" name="mail" placeholder="Wo kann ich dir antworten?" autocomplete="email">
-        <span class="form-error" id="err-mail"></span>
-      </div>
-      <div class="form-group">
-        <label for="cf-nachricht">Was beschäftigt dich?</label>
-        <textarea id="cf-nachricht" name="nachricht" placeholder="Erzähl mir kurz, was dich gerade beschäftigt."></textarea>
-        <span class="form-error" id="err-nachricht"></span>
-      </div>
-      <?php if (!empty($hckey)): ?>
-      <div class="h-captcha" data-sitekey="<?php echo htmlspecialchars($hckey); ?>"></div>
-      <?php endif; ?>
-      <div class="form-msg" id="form-msg"></div>
-      <button type="submit" class="btn-submit" id="btn-submit">Schauen wir uns an</button>
-    </form>
+    <h2>Du musst noch nicht wissen, was die Lösung ist.</h2>
+    <p class="sec-intro">Erzähl mir einfach, was dich gerade nervt.</p>
+    <a href="mailto:<?php echo htmlspecialchars($firma['mail']); ?>?subject=<?php echo rawurlencode('Anfrage über die Webseite'); ?>" class="contact-link">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="m3 7 9 6 9-6"/></svg>
+      <span><?php echo htmlspecialchars($firma['mail']); ?></span>
+    </a>
   </div>
 </div>
 
@@ -703,17 +658,16 @@ foreach ($projects as $p) {
     </p>
     <h2>Welche Daten erhoben werden</h2>
     <p>Beim Besuch dieser Website speichert der Webserver automatisch technische Zugriffsdaten: IP-Adresse, Zeitpunkt des Zugriffs, aufgerufene Seite, verwendeter Browser und Betriebssystem. Diese Daten sind für den technischen Betrieb notwendig und werden nach spätestens 30 Tagen gelöscht.</p>
-    <p>Wenn du über das Kontaktformular oder per E-Mail Kontakt aufnimmst, werden Name, E-Mail-Adresse und Nachrichteninhalt ausschliesslich zur Bearbeitung deiner Anfrage verwendet. Es findet keine Weitergabe an Dritte statt.</p>
+    <p>Wenn du per E-Mail Kontakt aufnimmst, werden Name, E-Mail-Adresse und Nachrichteninhalt ausschliesslich zur Bearbeitung deiner Anfrage verwendet. Es findet keine Weitergabe an Dritte statt.</p>
     <h2>Zweck der Datenbearbeitung</h2>
     <p>Technische Zugriffsdaten: Sicherstellung des Betriebs und Sicherheit der Website. Kontaktanfragen: Bearbeitung und Beantwortung deiner Anfrage.</p>
     <h2>Drittdienste</h2>
-    <p>Diese Website lädt Schriftarten (Ubuntu, Inter) über Google Fonts von Servern von Google LLC in den USA. Dabei wird deine IP-Adresse an Google übermittelt. Für die USA gilt seit dem Swiss-U.S. Data Privacy Framework (gültig ab 15. September 2024) ein angemessenes Datenschutzniveau für zertifizierte Unternehmen. Google LLC ist unter diesem Framework zertifiziert.</p>
-    <p>Das Kontaktformular ist mit hCaptcha geschützt (Intuition Machines, Inc., USA). hCaptcha erhebt technische Daten zur Spam-Erkennung. Weitere Informationen unter <a href="https://www.hcaptcha.com/privacy" target="_blank" rel="noopener">hcaptcha.com/privacy</a>.</p>
-    <p>Es werden keine weiteren Drittdienste eingesetzt. Kein Google Analytics, keine Social-Media-Einbindungen, keine Werbenetzwerke.</p>
+    <p>Die Schriftarten (Ubuntu, Inter) werden direkt von diesem Webserver geladen. Es findet dabei keine Verbindung zu Google oder anderen Anbietern statt.</p>
+    <p>Es werden keine Drittdienste eingesetzt. Kein Google Analytics, keine Social-Media-Einbindungen, keine Werbenetzwerke.</p>
     <h2>Cookies</h2>
-    <p>Diese Website setzt keine Tracking-Cookies. Es werden ausschliesslich technisch notwendige Session-Cookies des Webservers sowie Cookies von hCaptcha zur Spam-Erkennung verwendet. Ein Cookie-Banner ist nach Schweizer Recht nicht erforderlich.</p>
+    <p>Diese Website setzt keine Tracking-Cookies. Es werden ausschliesslich technisch notwendige Session-Cookies des Webservers verwendet. Ein Cookie-Banner ist nach Schweizer Recht nicht erforderlich.</p>
     <h2>Auslandtransfers</h2>
-    <p>Auslandtransfers: Google Fonts (USA) und hCaptcha (USA), wie oben beschrieben. Alle anderen Daten verbleiben auf Servern in der Schweiz oder der EU (OVHcloud, Frankreich).</p>
+    <p>Es findet keine Datenübermittlung in die USA oder andere Drittstaaten statt. Alle Daten verbleiben auf Servern in der Schweiz oder der EU (OVHcloud, Frankreich).</p>
     <h2>Deine Rechte nach nDSG</h2>
     <p>Du hast folgende Rechte bezüglich deiner Personendaten:</p>
     <ul>
@@ -839,93 +793,6 @@ if (navBurger) {
     if (window.innerWidth > 720 && navLinks.classList.contains('open')) setMenu(false);
   });
 }
-
-// Kontaktformular
-const form = document.getElementById('contact-form');
-if (form) {
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const btn = document.getElementById('btn-submit');
-    const msg = document.getElementById('form-msg');
-
-    // Fehler zurücksetzen
-    ['name','mail','nachricht'].forEach(f => {
-      document.getElementById('err-' + f).style.display = 'none';
-    });
-    msg.style.display = 'none';
-
-    // Validierung
-    let ok = true;
-    const name = document.getElementById('cf-name').value.trim();
-    const mail = document.getElementById('cf-mail').value.trim();
-    const nachricht = document.getElementById('cf-nachricht').value.trim();
-
-    if (name.length < 2) {
-      document.getElementById('err-name').textContent = 'Bitte gib deinen Namen ein.';
-      document.getElementById('err-name').style.display = 'block';
-      ok = false;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
-      document.getElementById('err-mail').textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.';
-      document.getElementById('err-mail').style.display = 'block';
-      ok = false;
-    }
-    if (nachricht.length < 10) {
-      document.getElementById('err-nachricht').textContent = 'Bitte schreib etwas (mindestens 10 Zeichen).';
-      document.getElementById('err-nachricht').style.display = 'block';
-      ok = false;
-    }
-    if (!ok) return;
-
-    btn.disabled = true;
-    btn.textContent = 'Wird gesendet...';
-
-    const data = new FormData(form);
-    try {
-      const res = await fetch('/contact.php', { method: 'POST', body: data });
-      const json = await res.json();
-      if (json.ok) {
-        msg.textContent = 'Danke für deine Nachricht. Ich melde mich bald.';
-        msg.className = 'form-msg ok';
-        msg.style.display = 'block';
-        form.reset();
-      } else {
-        const fehler = json.fehler ? json.fehler.join(' ') : 'Ein Fehler ist aufgetreten.';
-        msg.textContent = fehler;
-        msg.className = 'form-msg err';
-        msg.style.display = 'block';
-      }
-    } catch {
-      msg.textContent = 'Verbindungsfehler. Bitte direkt an hallo@wittwer-informatik.ch schreiben.';
-      msg.className = 'form-msg err';
-      msg.style.display = 'block';
-    }
-
-    btn.disabled = false;
-    btn.textContent = 'Nachricht senden';
-  });
-}
-
-<?php if (!empty($hckey)): ?>
-// hCaptcha erst laden wenn Kontaktformular sichtbar
-const captchaTarget = document.querySelector('.h-captcha');
-if (captchaTarget) {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const script = document.createElement('script');
-        script.src = 'https://js.hcaptcha.com/1/api.js';
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-        observer.disconnect();
-      }
-    });
-  }, { rootMargin: '200px' });
-  observer.observe(captchaTarget);
-}
-<?php endif; ?>
 </script>
 
 </body>

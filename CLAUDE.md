@@ -15,9 +15,8 @@ Ziel: schlank, wartbar, kein Overhead.
 
 ```
 index.php        — Hauptseite (alle Seiten: home, impressum, datenschutz)
-config.php       — Firmendaten, hCaptcha-Keys, SEO-Werte. NIE committen mit echten Keys.
+config.php       — Firmendaten (inkl. Kontakt-Mail), SEO-Werte. Steht in .gitignore.
 projects.php     — Projektliste als PHP-Array. Hier Projekte hinzufügen/bearbeiten.
-contact.php      — Formular-Handler (POST, hCaptcha-Verifikation, mail())
 robots.txt       — Crawler-Regeln
 sitemap.xml      — Sitemap für Google Search Console
 llms.txt         — Kurzprofil für KI-Indexierung
@@ -33,14 +32,13 @@ assets/
 - Kein Composer, keine npm, keine externen PHP-Libraries.
 - Kein jQuery, kein Alpine.js, kein Framework. Nur Vanilla JS.
 - Google Fonts lokal unter assets/fonts/ (ubuntu-400.woff2, ubuntu-700.woff2, inter-400.woff2, inter-500.woff2). Nicht über CDN laden.
-- hCaptcha-Script wird nur auf der Startseite geladen.
+- Keine externen Dienste (Scripts, Fonts, iFrames). Die CSP in index.php erlaubt nur `'self'`.
 - Alle Texte in Schweizer Schreibstil: kein Gedankenstrich (weder — noch –). Punkt und Komma. Ganz selten ein Semikolon.
 
 ### PHP
 - PHP 8.x, kein Strict-Mode nötig für diese Seite.
 - `config.php` und `projects.php` geben ein Array zurück (`return [...];`).
 - Alle Ausgaben mit `htmlspecialchars()` escapen.
-- `contact.php` gibt immer JSON zurück.
 
 ### CSS
 - CSS-Variablen für Farben und Abstände (bereits definiert in index.php).
@@ -50,17 +48,17 @@ assets/
 
 ### JavaScript
 - Kein `document.write`, kein `eval`.
-- Modal-Logik und Formular-Handler sind in index.php am Ende im `<script>`-Block.
+- Modal-Logik ist in index.php am Ende im `<script>`-Block.
 - Burger-Menü-Logik ebenfalls dort.
 
 ### Sicherheit
-- `contact.php`: Eingaben immer mit `strip_tags()` und `trim()` bereinigen.
-- hCaptcha-Secret-Key nur in `config.php`, nie hardcoded.
+- Kein Kontaktformular. Kontakt läuft über einen `mailto:`-Link mit vorausgefülltem Betreff.
+- Mail-Adresse kommt aus `$firma['mail']` in `config.php`, nie hardcoded im HTML.
 - `config.php` ist in `.gitignore` — echte Keys kommen nie ins Repo.
 
 ## Konfiguration anpassen
 
-Firmendaten, E-Mail, hCaptcha-Keys: nur in `config.php` ändern.
+Firmendaten und E-Mail: nur in `config.php` ändern.
 Projekte hinzufügen oder bearbeiten: nur in `projects.php`.
 Beides wird automatisch in index.php, Impressum und Datenschutz übernommen.
 
@@ -116,7 +114,6 @@ jobs:
           php -l index.php
           php -l config.example.php
           php -l projects.php
-          php -l contact.php
 ```
 
 Hinweis: `config.php` steht in `.gitignore` und ist im CI-Checkout nicht vorhanden.
@@ -153,28 +150,23 @@ jobs:
         run: curl -sf "http://localhost:8080/?page=impressum" > /dev/null
       - name: Datenschutz erreichbar
         run: curl -sf "http://localhost:8080/?page=datenschutz" > /dev/null
-      - name: Kontaktformular antwortet
+      - name: Kontakt-Link mit Betreff vorhanden
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8080/contact.php)
-          [ "$STATUS" = "405" ] && echo "OK: contact.php blockiert GET/leere POST" || exit 1
+          curl -s http://localhost:8080/ | grep -q 'mailto:hallo@wittwer-informatik.ch?subject=' || exit 1
 ```
 
-Der Smoke-Test startet die Seite lokal und prüft, ob alle drei Seiten antworten und `contact.php` keine leeren Anfragen durchlässt. Er braucht keine echten hCaptcha-Keys weil er keinen Submit auslöst.
+Der Smoke-Test startet die Seite lokal und prüft, ob alle drei Seiten antworten und der Kontakt-Link mit Betreff auf der Startseite steht.
 
 ### 3. Security Check (bei Push auf main, PR und jeden Montag 07:00 UTC)
 
 Datei: `.github/workflows/security-check.yml`
 
 Fährt die Seite lokal hoch und testet gegen gängige OWASP-Kategorien:
-Mail-Header-Injection und XSS über das Kontaktformular, Path Traversal und
-reflektiertes XSS über den `page`-Parameter, direkter Abruf von `config.php`
-und `projects.php`, HTTP-Methoden auf `contact.php`, Eingabevalidierung sowie
-ein paar grep-Checks auf `eval()`, `exec()`, `var_dump()` und hardcodierte Keys.
+Path Traversal und reflektiertes XSS über den `page`-Parameter, PHP-Fehlerausgabe,
+direkter Abruf von `config.php` und `projects.php` sowie ein paar grep-Checks auf
+`eval()`, `exec()`, `var_dump()` und hardcodierte Keys.
 
-Erstellt sich wie der Smoke-Test eine eigene `config.php` mit leeren hCaptcha-Keys.
-Bei leerem Secret-Key überspringt `contact.php` die hCaptcha-Verifikation, das
-leere `h-captcha-response`-Feld führt aber weiterhin zu `{"ok":false}`. Darum
-erwarten die Formular-Tests eine Ablehnung.
+Erstellt sich wie der Smoke-Test eine eigene `config.php` mit Testwerten.
 
 ## Deployment
 
@@ -191,6 +183,5 @@ rsync -avz --exclude='.git' --exclude='config.php' ./ user@server:/var/www/wittw
 ## Was nicht geändert werden soll
 
 - Das Logo (`logo_250x64.png` als Base64 in index.php) nicht ohne Absprache ersetzen.
-- Die hCaptcha-Integration in `contact.php` nicht vereinfachen oder entfernen.
 - `robots.txt` und `sitemap.xml` bei neuen Seiten aktualisieren.
 - `llms.txt` und `llms-full.txt` bei inhaltlichen Änderungen mitpflegen.

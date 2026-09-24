@@ -19,22 +19,6 @@ return [
         'website'  => 'https://wittwer-informatik.ch',
     ],
 
-    // hCaptcha
-    // Keys erhältlich unter: https://dashboard.hcaptcha.com
-    'hcaptcha' => [
-        'site_key'   => '',                        // TODO: Site-Key eintragen
-        'secret_key' => '',                        // TODO: Secret-Key eintragen (nicht im Git!)
-    ],
-
-    // Kontaktformular
-    'kontakt' => [
-        'empfaenger'  => 'hallo@wittwer-informatik.ch',
-        'betreff'     => 'Neue Kontaktanfrage, Wittwer Informatik',
-        'absender'    => 'noreply@wittwer-informatik.ch',
-        'ahasend_key'        => '',                // TODO: API-Key aus Ahasend-Dashboard (Format: aha-sk-...)
-        'ahasend_account_id' => '',                // TODO: Account-ID aus Ahasend-Dashboard
-    ],
-
     // SEO
     'seo' => [
         'title'       => 'Wittwer Informatik | IT-Lösungen für KMU und Vereine',
