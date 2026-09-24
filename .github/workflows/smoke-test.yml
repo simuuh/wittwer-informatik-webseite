@@ -35,15 +35,6 @@ jobs:
               'mail'    => 'hallo@wittwer-informatik.ch',
               'website' => 'https://wittwer-informatik.ch',
             ],
-            'hcaptcha' => [
-              'site_key'   => '',
-              'secret_key' => '',
-            ],
-            'kontakt' => [
-              'empfaenger' => 'hallo@wittwer-informatik.ch',
-              'betreff'    => 'Neue Kontaktanfrage',
-              'absender'   => 'noreply@wittwer-informatik.ch',
-            ],
             'seo' => [
               'title'       => 'Wittwer Informatik',
               'description' => 'IT-Loesungen fuer KMU und Vereine.',
@@ -79,23 +70,26 @@ jobs:
       - name: Unbekannte Seite landet auf Home
         run: |
           BODY=$(curl -s "http://localhost:8080/?page=irgendwas")
-          echo "$BODY" | grep -q "Ich finde die" || exit 1
+          echo "$BODY" | grep -q 'id="projekte"' || exit 1
 
-      - name: contact.php blockiert leere POST-Anfragen
-        run: |
-          RESPONSE=$(curl -s -X POST http://localhost:8080/contact.php)
-          echo "$RESPONSE" | grep -q '"ok":false' || exit 1
-
-      - name: contact.php blockiert GET-Anfragen
-        run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/contact.php)
-          echo "contact.php GET HTTP $STATUS"
-          [ "$STATUS" = "405" ] || exit 1
-
-      - name: Keine PHP-Fehler auf Startseite
+      - name: Kontakt-Link mit Betreff vorhanden
         run: |
           BODY=$(curl -s http://localhost:8080/)
-          echo "$BODY" | grep -qi "fatal error\|parse error\|warning:" && exit 1 || echo "Keine PHP-Fehler"
+          echo "$BODY" | grep -q 'mailto:hallo@wittwer-informatik.ch?subject=' || exit 1
+
+      - name: Keine PHP-Fehler auf allen Seiten
+        run: |
+          for P in home impressum datenschutz; do
+            BODY=$(curl -s "http://localhost:8080/?page=$P")
+            echo "$BODY" | grep -qiE "fatal error|parse error|warning(</b>)?:|notice(</b>)?:|deprecated(</b>)?:" && { echo "PHP-Fehler auf $P"; exit 1; }
+          done
+          echo "Keine PHP-Fehler"
+
+      - name: main.js erreichbar
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/assets/main.js)
+          echo "main.js HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
 
       - name: robots.txt erreichbar
         run: |

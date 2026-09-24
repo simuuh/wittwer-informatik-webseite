@@ -1,6 +1,6 @@
 <?php
 /**
- * Wittwer Informatik — Zentrale Konfiguration
+ * Wittwer Informatik: Zentrale Konfiguration
  * Hier alle dynamischen Werte anpassen.
  */
 return [
@@ -17,22 +17,6 @@ return [
         'uid'      => 'CHE-348.095.495',
         'mail'     => 'hallo@wittwer-informatik.ch',
         'website'  => 'https://wittwer-informatik.ch',
-    ],
-
-    // hCaptcha
-    // Keys erhältlich unter: https://dashboard.hcaptcha.com
-    'hcaptcha' => [
-        'site_key'   => '',                        // TODO: Site-Key eintragen
-        'secret_key' => '',                        // TODO: Secret-Key eintragen (nicht im Git!)
-    ],
-
-    // Kontaktformular
-    'kontakt' => [
-        'empfaenger'  => 'hallo@wittwer-informatik.ch',
-        'betreff'     => 'Neue Kontaktanfrage, Wittwer Informatik',
-        'absender'    => 'noreply@wittwer-informatik.ch',
-        'ahasend_key'        => '',                // TODO: API-Key aus Ahasend-Dashboard (Format: aha-sk-...)
-        'ahasend_account_id' => '',                // TODO: Account-ID aus Ahasend-Dashboard
     ],
 
     // SEO

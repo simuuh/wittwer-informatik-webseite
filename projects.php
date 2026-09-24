@@ -1,6 +1,6 @@
 <?php
 /**
- * Wittwer Informatik — Projektliste
+ * Wittwer Informatik: Projektliste
  * Jedes Projekt erscheint als Karte auf der Startseite.
  * Beim Klick öffnet sich ein Modal mit weiteren Infos und Bildern.
  *
@@ -14,7 +14,7 @@ return [
         'slug'        => 'versammlungshub',
         'name'        => 'VersammlungsHub',
         'tag'         => 'SaaS',
-        'status'      => 'Live',
+        'status'      => 'Beta',
         'kurz'        => 'Versammlungen digital verwalten. Für Vereine, Stockwerkeigentümergemeinschaften und Genossenschaften in der Schweiz.',
         'beschreibung' => 'VersammlungsHub vereinfacht die Verwaltung von Versammlungen für Schweizer Organisationen. Digitale Abstimmungen, Protokollführung, Finanzverwaltung und Mitgliederverwaltung in einer Plattform. Datenschutz nach Schweizer Recht (nDSG), gehostet in der Schweiz und der EU.',
         'features'    => [
@@ -57,26 +57,29 @@ return [
             'assets/projects/mitfahrli/uebersicht-fahrt.jpg',
         ],
     ],
-[
-    'slug'         => 'webothwant',
-    'name'         => 'WeBothWant',
-    'tag'          => 'App',
-    'status'       => 'Live',
-    'kurz'         => 'Anonymes Matching-Tool für Paare. Keine Daten gespeichert, kein Profil, kein Feed.',
-    'beschreibung' => 'WeBothWant löst ein einfaches Problem diskret: Beide Partner geben an was sie sich wünschen, ein Match erscheint nur wenn beide dasselbe gewählt haben. Gebaut mit Flask, PostgreSQL und Stripe. Von der Idee bis zur Monetarisierung eigenständig entwickelt und betrieben.',
-    'features'     => [
-        'Anonymes Matching, kein Profil nötig',
-        'Match nur sichtbar wenn beide übereinstimmen',
-        'Stripe-Integration (CHF 9.90)',
-        'Datenschutz by Design',
+
+    [
+        'slug'        => 'webothwant',
+        'name'        => 'WeBothWant',
+        'tag'         => 'App',
+        'status'      => 'Live',
+        'kurz'        => 'Anonymes Matching-Tool für Paare. Kein Profil, kein Feed, alle Daten nach 7 Tagen gelöscht.',
+        'beschreibung' => 'WeBothWant löst ein einfaches Problem diskret: Beide Partner geben an, was sie sich wünschen. Ein Match erscheint nur, wenn beide dasselbe gewählt haben. Anonym und ohne Profil, alle Daten werden nach 7 Tagen gelöscht. Gebaut mit Flask, PostgreSQL und Stripe. Von der Idee bis zur Monetarisierung eigenständig entwickelt und betrieben.',
+        'features'    => [
+            'Anonymes Matching, kein Profil nötig',
+            'Match nur sichtbar, wenn beide übereinstimmen',
+            'Automatische Löschung nach 7 Tagen',
+            'Stripe-Integration (CHF 9.90)',
+            'Datenschutz by Design',
+        ],
+        'stack'       => ['Flask', 'PostgreSQL', 'Stripe', 'Docker'],
+        'url'         => 'https://webothwant.com',
+        'url_label'   => 'webothwant.com',
+        'bilder'      => [
+            'assets/projects/webothwant/hero.jpg',
+        ],
     ],
-    'stack'        => ['Flask', 'PostgreSQL', 'Stripe', 'Docker'],
-    'url'          => 'https://webothwant.com',
-    'url_label'    => 'webothwant.com',
-    'bilder'       => [
-        'assets/projects/webothwant/hero.jpg',
-    ],
-],
+
     [
         'slug'        => 'platzhalter',
         'name'        => 'Nächstes Projekt',

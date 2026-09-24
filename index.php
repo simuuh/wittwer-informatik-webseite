@@ -10,26 +10,54 @@ header('X-XSS-Protection: 0');
 header(
     "Content-Security-Policy: "
     . "default-src 'self'; "
-    . "script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; "
+    . "script-src 'self'; "
     . "style-src 'self' 'unsafe-inline'; "
     . "font-src 'self'; "
-    . "frame-src https://newassets.hcaptcha.com; "
-    . "connect-src 'self' https://api.hcaptcha.com; "
     . "img-src 'self' data:; "
     . "object-src 'none'; "
     . "base-uri 'self'; "
-    . "form-action 'self'"
+    . "form-action 'none'; "
+    . "frame-ancestors 'none'"
 );
 
 $config   = require __DIR__ . '/config.php';
 $projects = require __DIR__ . '/projects.php';
 $firma    = $config['firma'];
 $seo      = $config['seo'];
-$hckey    = $config['hcaptcha']['site_key'];
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 $allowed = ['home', 'impressum', 'datenschutz'];
 if (!in_array($page, $allowed)) $page = 'home';
+
+// Seitenspezifische Metadaten (Titel, Description, Canonical)
+$meta = [
+    'home'        => ['title' => $seo['title'], 'description' => $seo['description'], 'path' => '/'],
+    'impressum'   => ['title' => 'Impressum | ' . $firma['name'], 'description' => 'Impressum von ' . $firma['name'] . '. Kontaktangaben und rechtliche Hinweise.', 'path' => '/?page=impressum'],
+    'datenschutz' => ['title' => 'Datenschutz | ' . $firma['name'], 'description' => 'Datenschutzerklärung von ' . $firma['name'] . ' nach Schweizer Datenschutzgesetz (nDSG).', 'path' => '/?page=datenschutz'],
+][$page];
+$canonical = $seo['url'] . $meta['path'];
+
+// Schema.org JSON-LD. Leere Adressfelder werden weggelassen.
+$jsonld = [
+    '@context'      => 'https://schema.org',
+    '@type'         => 'LocalBusiness',
+    'name'          => $firma['name'],
+    'description'   => $seo['description'],
+    'url'           => $firma['website'],
+    'email'         => $firma['mail'],
+    'founder'       => ['@type' => 'Person', 'name' => $firma['inhaber']],
+    'address'       => array_filter([
+        '@type'           => 'PostalAddress',
+        'streetAddress'   => $firma['strasse'],
+        'postalCode'      => $firma['plz'],
+        'addressLocality' => $firma['ort'],
+        'addressRegion'   => 'BE',
+        'addressCountry'  => 'CH',
+    ]),
+    'areaServed'    => 'CH',
+    'knowsLanguage' => ['de', 'en'],
+];
+$json_flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG;
 
 // Hilfsfunktion: Platzhalter-SVG als Data-URI
 function placeholder_svg(string $text, string $bg = '#e4e4e0', string $fg = '#9a9a94'): string {
@@ -43,38 +71,21 @@ function placeholder_svg(string $text, string $bg = '#e4e4e0', string $fg = '#9a
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<link rel="preload" as="image" href="/assets/images/logos/logo_transparent_250x64.png" fetchpriority="high">
-<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/ubuntu-700.woff2" crossorigin>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preload" as="image" href="/assets/images/logos/logo_transparent_250x64.png" fetchpriority="high">
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/ubuntu-700.woff2" crossorigin>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='4'%20fill='%233CB975'/%3E%3C/svg%3E">
-<title><?php
-    if ($page === 'impressum')    echo 'Impressum | Wittwer Informatik';
-    elseif ($page === 'datenschutz') echo 'Datenschutz | Wittwer Informatik';
-    else echo htmlspecialchars($seo['title']);
-?></title>
-<meta name="description" content="<?php echo htmlspecialchars($seo['description']); ?>">
+<title><?php echo htmlspecialchars($meta['title']); ?></title>
+<meta name="description" content="<?php echo htmlspecialchars($meta['description']); ?>">
 <meta name="author" content="<?php echo htmlspecialchars($firma['inhaber'] . ', ' . $firma['name']); ?>">
-<link rel="canonical" href="<?php echo htmlspecialchars($seo['url']); ?>/">
-<meta property="og:title" content="<?php echo htmlspecialchars($seo['title']); ?>">
-<meta property="og:description" content="<?php echo htmlspecialchars($seo['description']); ?>">
+<link rel="canonical" href="<?php echo htmlspecialchars($canonical); ?>">
+<meta property="og:title" content="<?php echo htmlspecialchars($meta['title']); ?>">
+<meta property="og:description" content="<?php echo htmlspecialchars($meta['description']); ?>">
 <meta property="og:type" content="website">
-<meta property="og:url" content="<?php echo htmlspecialchars($seo['url']); ?>/">
+<meta property="og:url" content="<?php echo htmlspecialchars($canonical); ?>">
 <meta property="og:locale" content="de_CH">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "name": "<?php echo $firma['name']; ?>",
-  "description": "IT-Beratung und Softwareentwicklung für KMU und Vereine in der Schweiz.",
-  "url": "<?php echo $firma['website']; ?>",
-  "email": "<?php echo $firma['mail']; ?>",
-  "founder": {"@type": "Person", "name": "<?php echo $firma['inhaber']; ?>"},
-  "address": {"@type": "PostalAddress", "addressRegion": "BE", "addressCountry": "CH"},
-  "areaServed": "CH",
-  "knowsLanguage": ["de", "en"]
-}
-</script>
+<script type="application/ld+json"><?php echo json_encode($jsonld, $json_flags); ?></script>
 <style>
 @font-face {
   font-family: 'Ubuntu';
@@ -123,6 +134,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
+body.no-scroll { overflow: hidden; }
 nav {
   position: sticky; top: 0; z-index: 100;
   background: var(--bg);
@@ -304,6 +316,7 @@ h2 {
   border: 2px solid var(--ink); transition: background 0.15s, color 0.15s;
 }
 .modal-link:hover { background: transparent; color: var(--ink); }
+.modal-link[hidden] { display: none; }
 
 /* ABOUT */
 .about-grid {
@@ -331,49 +344,23 @@ h2 {
 
 /* KONTAKT */
 .contact-band { background: var(--ink); padding: 5rem 0; }
-.contact-band .sec-label { color: var(--green); }
 .contact-band h2 { color: var(--bg); margin-bottom: 0.75rem; }
 .contact-band .sec-intro { color: rgba(255,255,255,0.45); margin-bottom: 2rem; }
-
-/* FORMULAR */
-.contact-form { max-width: 520px; display: flex; flex-direction: column; gap: 1rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
-.form-group label { font-size: 0.8125rem; font-weight: 500; color: rgba(255,255,255,0.6); }
-.form-group input,
-.form-group textarea {
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: var(--bg);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
-  padding: 0.7rem 0.9rem;
-  outline: none;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-.form-group input::placeholder,
-.form-group textarea::placeholder { color: rgba(255,255,255,0.25); }
-.form-group input:focus,
-.form-group textarea:focus { border-color: var(--green); }
-.form-group textarea { resize: vertical; min-height: 130px; }
-.form-error { font-size: 0.8125rem; color: #f87171; margin-top: 0.25rem; display: none; }
-.form-msg {
-  font-size: 0.875rem; padding: 0.75rem 1rem;
-  display: none; margin-top: 0.5rem;
-}
-.form-msg.ok { background: rgba(60,185,117,0.15); color: var(--green); }
-.form-msg.err { background: rgba(248,113,113,0.15); color: #f87171; }
-.btn-submit {
-  background: var(--green); color: var(--ink);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem; font-weight: 500;
-  padding: 0.7rem 1.6rem;
+.contact-link {
+  display: inline-flex; align-items: center; gap: 0.75rem;
+  max-width: 100%;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 1.375rem; font-weight: 700;
+  color: var(--bg); text-decoration: none;
+  padding: 0.9rem 1.4rem;
   border: 2px solid var(--green);
-  cursor: pointer; transition: opacity 0.15s;
-  align-self: flex-start;
+  transition: background 0.15s, color 0.15s;
 }
-.btn-submit:hover { opacity: 0.85; }
-.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.contact-link svg { color: var(--green); flex-shrink: 0; transition: color 0.15s; }
+.contact-link span { overflow-wrap: anywhere; }
+.contact-link:hover { background: var(--green); color: var(--ink); }
+.contact-link:hover svg { color: var(--ink); }
+.contact-link:focus-visible { outline: 2px solid var(--bg); outline-offset: 3px; }
 
 /* FOOTER */
 .footer-inner {
@@ -396,8 +383,10 @@ h2 {
 .legal ul { margin-left: 1.25rem; margin-top: 0.5rem; margin-bottom: 0.75rem; }
 .legal li { font-size: 0.9375rem; color: var(--mid); line-height: 2; }
 .legal a { color: var(--green); }
+.legal-more { margin-top: 2rem; }
 
 @media (max-width: 720px) {
+  .contact-link { font-size: 1.0625rem; padding: 0.8rem 1rem; }
   /* Nav über den Backdrop heben, sonst liegt das Slide-in dahinter */
   nav { z-index: 200; }
   .nav-burger {
@@ -502,7 +491,7 @@ h2 {
         <div class="step-num">3</div>
         <div>
           <h3>Umsetzen und betreiben</h3>
-          <p>Ich setze die Lösung um, erkläre dir, was ich gemacht habe, und bin auch danach noch da. Kein "Deploy and forget"</p>
+          <p>Ich setze die Lösung um, erkläre dir, was ich gemacht habe, und bin auch danach noch da. Kein «Deploy and forget».</p>
         </div>
       </div>
     </div>
@@ -515,7 +504,7 @@ h2 {
   <div class="wrap">
     <div class="sec-label">Typische Situationen</div>
     <h2>Kommt dir das bekannt vor?</h2>
-    <p class="sec-intro">Keine Theorie. Das sind echte Probleme, die ich bereits gelöst habe. </p>
+    <p class="sec-intro">Keine Theorie. Das sind echte Probleme, die ich bereits gelöst habe.</p>
     <div class="examples">
       <div class="ex">
         <svg class="ex-icon" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 2v4M16 2v4M2 10h20"/></svg>
@@ -557,7 +546,7 @@ h2 {
             <p><?php echo htmlspecialchars($p['kurz']); ?></p>
           </div>
         <?php else: ?>
-          <div class="proj" onclick="openModal('<?php echo $p['slug']; ?>')" role="button" tabindex="0" aria-label="<?php echo htmlspecialchars($p['name']); ?> Details öffnen" onkeydown="if(event.key==='Enter')openModal('<?php echo $p['slug']; ?>')">
+          <div class="proj" data-slug="<?php echo htmlspecialchars($p['slug']); ?>" role="button" tabindex="0" aria-haspopup="dialog" aria-label="<?php echo htmlspecialchars($p['name']); ?> Details öffnen">
             <span class="proj-tag"><?php echo htmlspecialchars($p['tag'] . ' · ' . $p['status']); ?></span>
             <h3><?php echo htmlspecialchars($p['name']); ?></h3>
             <p><?php echo htmlspecialchars($p['kurz']); ?></p>
@@ -590,11 +579,12 @@ foreach ($projects as $p) {
     ];
 }
 ?>
+<script type="application/json" id="projekte-data"><?php echo json_encode($modal_data, $json_flags); ?></script>
 
 <!-- MODALS -->
 <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal" id="modal-box">
-    <button class="modal-close" onclick="closeModal()" aria-label="Schliessen">&#x2715;</button>
+    <button class="modal-close" id="modal-close" type="button" aria-label="Schliessen">&#x2715;</button>
     <img class="modal-img-main" id="modal-img-main" src="" alt="">
     <div class="modal-thumbs" id="modal-thumbs"></div>
     <div class="modal-body">
@@ -632,31 +622,12 @@ foreach ($projects as $p) {
 <div class="contact-band" id="kontakt">
   <div class="wrap">
     <div class="sec-label">Kontakt</div>
-    <h2>Du musst noch nicht wissen, was die Lösung ist. Erzähl mir einfach, was dich gerade nervt.</h2>
-    <p class="sec-intro">Schreib mir kurz, was dich beschäftigt. Ich melde mich in der Regel innert einem Werktag.</p>
-
-    <form class="contact-form" id="contact-form" novalidate>
-      <div class="form-group">
-        <label for="cf-name">Dein Name</label>
-        <input type="text" id="cf-name" name="name" placeholder="Wie darf ich dich nennen?" autocomplete="name">
-        <span class="form-error" id="err-name"></span>
-      </div>
-      <div class="form-group">
-        <label for="cf-mail">Deine E-Mail</label>
-        <input type="email" id="cf-mail" name="mail" placeholder="Wo kann ich dir antworten?" autocomplete="email">
-        <span class="form-error" id="err-mail"></span>
-      </div>
-      <div class="form-group">
-        <label for="cf-nachricht">Was beschäftigt dich?</label>
-        <textarea id="cf-nachricht" name="nachricht" placeholder="Erzähl mir kurz, was dich gerade beschäftigt."></textarea>
-        <span class="form-error" id="err-nachricht"></span>
-      </div>
-      <?php if (!empty($hckey)): ?>
-      <div class="h-captcha" data-sitekey="<?php echo htmlspecialchars($hckey); ?>"></div>
-      <?php endif; ?>
-      <div class="form-msg" id="form-msg"></div>
-      <button type="submit" class="btn-submit" id="btn-submit">Schauen wir uns an</button>
-    </form>
+    <h2>Du musst noch nicht wissen, was die Lösung ist.</h2>
+    <p class="sec-intro">Erzähl mir einfach, was dich gerade nervt.</p>
+    <a href="mailto:<?php echo htmlspecialchars($firma['mail']); ?>?subject=<?php echo rawurlencode('Anfrage über die Webseite'); ?>" class="contact-link">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="m3 7 9 6 9-6"/></svg>
+      <span><?php echo htmlspecialchars($firma['mail']); ?></span>
+    </a>
   </div>
 </div>
 
@@ -683,7 +654,7 @@ foreach ($projects as $p) {
     <p>Für externe Links zu fremden Websites wird keine Verantwortung übernommen. Für den Inhalt verlinkter Seiten sind ausschliesslich deren Betreiber verantwortlich.</p>
     <h2>Gerichtsstand</h2>
     <p>Es gilt Schweizer Recht. Gerichtsstand ist <?php echo htmlspecialchars($firma['kanton']); ?>, <?php echo htmlspecialchars($firma['land']); ?>.</p>
-    <p style="margin-top:2rem;"><a href="/?page=datenschutz">Zur Datenschutzerklärung</a></p>
+    <p class="legal-more"><a href="/?page=datenschutz">Zur Datenschutzerklärung</a></p>
   </div>
 </div>
 
@@ -697,23 +668,28 @@ foreach ($projects as $p) {
     <h2>Verantwortlicher</h2>
     <p>
       <?php echo htmlspecialchars($firma['name'] . ', ' . $firma['inhaber']); ?><br>
+      <?php if (!empty($firma['strasse'])): ?>
+        <?php echo htmlspecialchars($firma['strasse']); ?><br>
+        <?php echo htmlspecialchars($firma['plz'] . ' ' . $firma['ort']); ?><br>
+      <?php endif; ?>
       <?php echo htmlspecialchars($firma['kanton'] . ', ' . $firma['land']); ?><br>
       UID: <?php echo htmlspecialchars($firma['uid']); ?><br>
       <a href="mailto:<?php echo htmlspecialchars($firma['mail']); ?>"><?php echo htmlspecialchars($firma['mail']); ?></a>
     </p>
     <h2>Welche Daten erhoben werden</h2>
     <p>Beim Besuch dieser Website speichert der Webserver automatisch technische Zugriffsdaten: IP-Adresse, Zeitpunkt des Zugriffs, aufgerufene Seite, verwendeter Browser und Betriebssystem. Diese Daten sind für den technischen Betrieb notwendig und werden nach spätestens 30 Tagen gelöscht.</p>
-    <p>Wenn du über das Kontaktformular oder per E-Mail Kontakt aufnimmst, werden Name, E-Mail-Adresse und Nachrichteninhalt ausschliesslich zur Bearbeitung deiner Anfrage verwendet. Es findet keine Weitergabe an Dritte statt.</p>
+    <p>Wenn du per E-Mail Kontakt aufnimmst, werden deine E-Mail-Adresse, dein Name (falls angegeben) und der Inhalt deiner Nachricht ausschliesslich zur Bearbeitung deiner Anfrage verwendet. Es findet keine Weitergabe an Dritte statt.</p>
+    <h2>Hosting und E-Mail</h2>
+    <p>Die Website wird bei OVHcloud gehostet. E-Mails werden auf einem selbst betriebenen Mailserver (mailcow) gespeichert, der ebenfalls bei OVHcloud läuft. OVHcloud bearbeitet die Daten dabei nur als technischer Dienstleister.</p>
     <h2>Zweck der Datenbearbeitung</h2>
     <p>Technische Zugriffsdaten: Sicherstellung des Betriebs und Sicherheit der Website. Kontaktanfragen: Bearbeitung und Beantwortung deiner Anfrage.</p>
     <h2>Drittdienste</h2>
-    <p>Diese Website lädt Schriftarten (Ubuntu, Inter) über Google Fonts von Servern von Google LLC in den USA. Dabei wird deine IP-Adresse an Google übermittelt. Für die USA gilt seit dem Swiss-U.S. Data Privacy Framework (gültig ab 15. September 2024) ein angemessenes Datenschutzniveau für zertifizierte Unternehmen. Google LLC ist unter diesem Framework zertifiziert.</p>
-    <p>Das Kontaktformular ist mit hCaptcha geschützt (Intuition Machines, Inc., USA). hCaptcha erhebt technische Daten zur Spam-Erkennung. Weitere Informationen unter <a href="https://www.hcaptcha.com/privacy" target="_blank" rel="noopener">hcaptcha.com/privacy</a>.</p>
-    <p>Es werden keine weiteren Drittdienste eingesetzt. Kein Google Analytics, keine Social-Media-Einbindungen, keine Werbenetzwerke.</p>
+    <p>Die Schriftarten (Ubuntu, Inter) werden direkt von diesem Webserver geladen. Es findet dabei keine Verbindung zu Google oder anderen Anbietern statt.</p>
+    <p>Es werden keine Drittdienste eingesetzt. Kein Google Analytics, keine Social-Media-Einbindungen, keine Werbenetzwerke.</p>
     <h2>Cookies</h2>
-    <p>Diese Website setzt keine Tracking-Cookies. Es werden ausschliesslich technisch notwendige Session-Cookies des Webservers sowie Cookies von hCaptcha zur Spam-Erkennung verwendet. Ein Cookie-Banner ist nach Schweizer Recht nicht erforderlich.</p>
+    <p>Diese Website setzt keine Cookies. Ein Cookie-Banner ist darum nicht erforderlich.</p>
     <h2>Auslandtransfers</h2>
-    <p>Auslandtransfers: Google Fonts (USA) und hCaptcha (USA), wie oben beschrieben. Alle anderen Daten verbleiben auf Servern in der Schweiz oder der EU (OVHcloud, Frankreich).</p>
+    <p>Es findet keine Datenübermittlung in die USA oder andere Drittstaaten statt. Website und Mailserver laufen auf Servern von OVHcloud in der EU.</p>
     <h2>Deine Rechte nach nDSG</h2>
     <p>Du hast folgende Rechte bezüglich deiner Personendaten:</p>
     <ul>
@@ -742,191 +718,7 @@ foreach ($projects as $p) {
   </div>
 </div>
 
-<script>
-// Modal-Daten aus PHP
-const PROJEKTE = <?php echo json_encode($modal_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-
-function openModal(slug) {
-  const p = PROJEKTE[slug];
-  if (!p) return;
-
-  // Bilder
-  const hauptbild = document.getElementById('modal-img-main');
-  hauptbild.src = p.bilder[0] || '';
-  hauptbild.alt = p.name;
-
-  // Thumbnails
-  const thumbs = document.getElementById('modal-thumbs');
-  thumbs.innerHTML = '';
-  if (p.bilder.length > 1) {
-    p.bilder.forEach((src, i) => {
-      const img = document.createElement('img');
-      img.src = src; img.alt = p.name + ' Bild ' + (i + 1);
-      img.className = 'modal-thumb' + (i === 0 ? ' active' : '');
-      img.onclick = () => {
-        hauptbild.src = src;
-        thumbs.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
-        img.classList.add('active');
-      };
-      thumbs.appendChild(img);
-    });
-  }
-
-  document.getElementById('modal-title').textContent = p.name;
-  document.getElementById('modal-beschreibung').textContent = p.beschreibung;
-
-  const ul = document.getElementById('modal-features');
-  ul.innerHTML = '';
-  p.features.forEach(f => {
-    const li = document.createElement('li');
-    li.textContent = f;
-    ul.appendChild(li);
-  });
-
-  const stack = document.getElementById('modal-stack');
-  stack.innerHTML = '';
-  p.stack.forEach(s => {
-    const span = document.createElement('span');
-    span.textContent = s;
-    stack.appendChild(span);
-  });
-
-  const link = document.getElementById('modal-link');
-  if (p.url) {
-    link.href = p.url;
-    link.textContent = p.url_label;
-    link.style.display = 'inline-block';
-  } else {
-    link.style.display = 'none';
-  }
-
-  document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-document.getElementById('modal-overlay').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeModal();
-});
-
-// Burger-Menü (Mobile, Slide-in von rechts)
-const navBurger = document.getElementById('nav-burger');
-const navLinks = document.getElementById('nav-links');
-const navBackdrop = document.getElementById('nav-backdrop');
-
-function setMenu(open) {
-  navBurger.classList.toggle('open', open);
-  navLinks.classList.toggle('open', open);
-  navBackdrop.classList.toggle('open', open);
-  navBurger.setAttribute('aria-expanded', open ? 'true' : 'false');
-  navBurger.setAttribute('aria-label', open ? 'Menü schliessen' : 'Menü öffnen');
-  document.body.style.overflow = open ? 'hidden' : '';
-}
-
-if (navBurger) {
-  navBurger.addEventListener('click', () => setMenu(!navLinks.classList.contains('open')));
-  navBackdrop.addEventListener('click', () => setMenu(false));
-  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 720 && navLinks.classList.contains('open')) setMenu(false);
-  });
-}
-
-// Kontaktformular
-const form = document.getElementById('contact-form');
-if (form) {
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const btn = document.getElementById('btn-submit');
-    const msg = document.getElementById('form-msg');
-
-    // Fehler zurücksetzen
-    ['name','mail','nachricht'].forEach(f => {
-      document.getElementById('err-' + f).style.display = 'none';
-    });
-    msg.style.display = 'none';
-
-    // Validierung
-    let ok = true;
-    const name = document.getElementById('cf-name').value.trim();
-    const mail = document.getElementById('cf-mail').value.trim();
-    const nachricht = document.getElementById('cf-nachricht').value.trim();
-
-    if (name.length < 2) {
-      document.getElementById('err-name').textContent = 'Bitte gib deinen Namen ein.';
-      document.getElementById('err-name').style.display = 'block';
-      ok = false;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
-      document.getElementById('err-mail').textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.';
-      document.getElementById('err-mail').style.display = 'block';
-      ok = false;
-    }
-    if (nachricht.length < 10) {
-      document.getElementById('err-nachricht').textContent = 'Bitte schreib etwas (mindestens 10 Zeichen).';
-      document.getElementById('err-nachricht').style.display = 'block';
-      ok = false;
-    }
-    if (!ok) return;
-
-    btn.disabled = true;
-    btn.textContent = 'Wird gesendet...';
-
-    const data = new FormData(form);
-    try {
-      const res = await fetch('/contact.php', { method: 'POST', body: data });
-      const json = await res.json();
-      if (json.ok) {
-        msg.textContent = 'Danke für deine Nachricht. Ich melde mich bald.';
-        msg.className = 'form-msg ok';
-        msg.style.display = 'block';
-        form.reset();
-      } else {
-        const fehler = json.fehler ? json.fehler.join(' ') : 'Ein Fehler ist aufgetreten.';
-        msg.textContent = fehler;
-        msg.className = 'form-msg err';
-        msg.style.display = 'block';
-      }
-    } catch {
-      msg.textContent = 'Verbindungsfehler. Bitte direkt an hallo@wittwer-informatik.ch schreiben.';
-      msg.className = 'form-msg err';
-      msg.style.display = 'block';
-    }
-
-    btn.disabled = false;
-    btn.textContent = 'Nachricht senden';
-  });
-}
-
-<?php if (!empty($hckey)): ?>
-// hCaptcha erst laden wenn Kontaktformular sichtbar
-const captchaTarget = document.querySelector('.h-captcha');
-if (captchaTarget) {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const script = document.createElement('script');
-        script.src = 'https://js.hcaptcha.com/1/api.js';
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-        observer.disconnect();
-      }
-    });
-  }, { rootMargin: '200px' });
-  observer.observe(captchaTarget);
-}
-<?php endif; ?>
-</script>
+<script src="/assets/main.js?v=<?php echo filemtime(__DIR__ . '/assets/main.js'); ?>"></script>
 
 </body>
 </html>

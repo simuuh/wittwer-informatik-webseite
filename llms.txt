@@ -19,8 +19,9 @@ Kleine KMU (5 bis 50 Personen) und Vereine in der Schweiz, insbesondere Kanton B
 
 ## Eigene Produkte
 
-- VersammlungsHub (versammlungshub.ch): SaaS für Versammlungsverwaltung. Für Vereine, Stockwerkeigentümergemeinschaften und Genossenschaften. Schweizer Recht (nDSG), digitale Abstimmungen, Protokolle, Finanzen.
+- VersammlungsHub (versammlungshub.ch): SaaS für Versammlungsverwaltung, in der Beta-Phase. Für Vereine, Stockwerkeigentümergemeinschaften und Genossenschaften. Schweizer Recht (nDSG), digitale Abstimmungen, Protokolle, Finanzen.
 - Mitfahrli (mitfahrli.ch): Fahrgemeinschafts-App für Vereine und Teams. Kein Login, kein Tracking, nur Magic Links.
+- WeBothWant (webothwant.com): Anonymes Matching-Tool für Paare. Ein Match erscheint nur, wenn beide dasselbe gewählt haben. Kein Profil, alle Daten nach 7 Tagen gelöscht.
 
 ## Kontakt
 

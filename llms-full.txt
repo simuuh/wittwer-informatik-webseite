@@ -1,4 +1,4 @@
-# Wittwer Informatik — Vollständige Beschreibung
+# Wittwer Informatik: Vollständige Beschreibung
 
 ## Unternehmen
 
@@ -40,6 +40,13 @@ URL: mitfahrli.ch
 Typ: Web-App
 Zielgruppe: Vereine, Schulklassen, Sportteams in der Schweiz
 Funktionen: Fahrgemeinschaften organisieren über Event-Codes und Magic Links. Kein Login, kein Tracking, keine App-Installation nötig.
+Status: Live
+
+### WeBothWant
+URL: webothwant.com
+Typ: Web-App
+Zielgruppe: Paare im DACH-Raum (18+)
+Funktionen: Beide Partner geben anonym an, was sie sich wünschen. Ein Match erscheint nur, wenn beide dasselbe gewählt haben. Kein Profil, kein Feed, alle Daten werden nach 7 Tagen gelöscht. Bezahlung über Stripe (CHF 9.90).
 Status: Live
 
 ## Typische Kundensituationen
