@@ -81,7 +81,7 @@ jobs:
         run: |
           for P in home impressum datenschutz; do
             BODY=$(curl -s "http://localhost:8080/?page=$P")
-            echo "$BODY" | grep -qiE "fatal error|parse error|warning:|notice:|deprecated:" && { echo "PHP-Fehler auf $P"; exit 1; }
+            echo "$BODY" | grep -qiE "fatal error|parse error|warning(</b>)?:|notice(</b>)?:|deprecated(</b>)?:" && { echo "PHP-Fehler auf $P"; exit 1; }
           done
           echo "Keine PHP-Fehler"
 

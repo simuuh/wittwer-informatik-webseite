@@ -82,7 +82,7 @@ jobs:
         run: |
           for P in home impressum datenschutz; do
             BODY=$(curl -s "http://localhost:8080/?page=$P")
-            echo "$BODY" | grep -qiE "Fatal error|Parse error|Warning:|Notice:|Deprecated:" && { echo "PHP-Fehler auf $P"; exit 1; }
+            echo "$BODY" | grep -qiE "Fatal error|Parse error|Warning(</b>)?:|Notice(</b>)?:|Deprecated(</b>)?:" && { echo "PHP-Fehler auf $P"; exit 1; }
           done
           echo "OK"
 
@@ -134,7 +134,7 @@ jobs:
       - name: "Static | Keine unescapten Variablen-Ausgaben"
         run: |
           # Jede Ausgabe einer Variable muss über htmlspecialchars() oder json_encode() laufen
-          grep -nE "echo \$" index.php && exit 1 || echo "OK"
+          grep -nE 'echo \$' index.php && exit 1 || echo "OK"
 
       - name: "Static | Keine Inline-Event-Handler (CSP)"
         run: |
