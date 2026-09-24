@@ -213,7 +213,7 @@ h2 {
 }
 .examples {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1px; background: var(--faint); border: 1px solid var(--faint);
 }
 .ex { background: var(--bg); padding: 1.75rem; }
@@ -423,6 +423,9 @@ h2 {
   }
   .nav-backdrop.open { display: block; }
   .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .examples {
+    grid-template-columns: 1fr;
+  }
   .hero { padding: 3.5rem 0 3rem; }
   .modal-thumbs { padding: 0.5rem 1rem 0; }
   .modal-body { padding: 1.25rem; }
